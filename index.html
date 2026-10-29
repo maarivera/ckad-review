@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CKA Study Plan & Exam Simulator</title>
+<style>
+:root{
+  --bg:#12141c; --panel:#1b1e2a; --panel2:#232738; --line:#2f3448; --text:#e3e6f0; --muted:#8f96ad;
+  --accent:#4f8cff; --ok:#3ecf8e; --warn:#f5b84b; --bad:#ff6b6b; --code:#0d0f15;
+  --mono:"JetBrains Mono","Fira Code",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+header{display:flex;align-items:center;gap:24px;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0;white-space:nowrap}
+header h1 span{color:var(--accent)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;color:var(--muted);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:14px}
+nav button:hover{color:var(--text);background:var(--panel2)}
+nav button.active{color:#fff;background:var(--accent)}
+main{max-width:1280px;margin:0 auto;padding:24px}
+section{display:none} section.active{display:block}
+h2{margin:0 0 4px} h3{margin:24px 0 8px}
+.sub{color:var(--muted);margin:0 0 20px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.stat{font-size:30px;font-weight:700}
+.label{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.btn{background:var(--accent);color:#fff;border:0;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.bad{background:var(--bad)} .btn.ok{background:var(--ok);color:#06281a}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+input[type=date],select,textarea{background:var(--code);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit}
+textarea{width:100%;font-family:var(--mono);font-size:13px;resize:vertical}
+code{font-family:var(--mono);background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px;color:#ffd580}
+pre{font-family:var(--mono);background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px;overflow:auto;font-size:13px;line-height:1.5;color:#cfe3ff;margin:8px 0}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.d-arch{color:#7fb2ff;border-color:#36507d}.d-work{color:#c59bff;border-color:#55407a}.d-net{color:#5fd7c7;border-color:#2b625b}
+.d-stor{color:#ffc26b;border-color:#6d5430}.d-trbl{color:#ff8c8c;border-color:#723a3a}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.pass{color:var(--ok);font-weight:700}.fail{color:var(--bad);font-weight:700}
+
+/* Study plan */
+.week{margin-bottom:18px}
+.week-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:14px 18px}
+.week-head h3{margin:0;font-size:16px}
+.week-body{padding:0 18px 12px;display:none}
+.week.open .week-body{display:block}
+.day{border-top:1px solid var(--line);padding:12px 0}
+.day h4{margin:0 0 6px;font-size:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.task{display:flex;gap:10px;align-items:flex-start;padding:3px 0;cursor:pointer}
+.task input{margin-top:4px;accent-color:var(--ok)}
+.task.done span{color:var(--muted);text-decoration:line-through}
+.links{font-size:13px;margin-top:4px}
+.links a{margin-right:12px}
+
+/* Simulator */
+.sim-wrap{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.sim-top{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.timer{font-family:var(--mono);font-size:24px;font-weight:700}
+.timer.low{color:var(--bad)}
+.qlist{display:flex;flex-direction:column;gap:4px;max-height:75vh;overflow:auto}
+.qbtn{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;text-align:left}
+.qbtn.cur{border-color:var(--accent);background:#1d2b4a}
+.qbtn.done{border-left:4px solid var(--ok)}
+.qbtn.flag .fl{color:var(--warn)}
+.qbtn small{color:var(--muted)}
+.ctx{display:flex;align-items:center;gap:10px;background:var(--code);border:1px dashed var(--warn);border-radius:8px;padding:10px 14px;margin:12px 0;font-family:var(--mono);font-size:13px}
+.ctx b{color:var(--warn);font-family:system-ui}
+.qtask p{margin:8px 0}.qtask ul{margin:6px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.check{display:flex;gap:10px;padding:4px 0;cursor:pointer}
+.check input{accent-color:var(--ok);margin-top:4px}
+.review-q{margin-bottom:16px}
+.review-q summary{cursor:pointer;display:flex;justify-content:space-between;gap:12px;align-items:center;list-style:none}
+.review-q summary::-webkit-details-marker{display:none}
+.score-pill{font-family:var(--mono);font-size:13px;padding:2px 10px;border-radius:10px;background:var(--panel2)}
+.hint{background:#2a2414;border:1px solid #5a4a20;border-radius:8px;padding:10px 14px;color:#f3dca4;margin-top:10px;font-size:14px}
+
+/* Quiz */
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:8px;margin:8px 0;cursor:pointer;font-size:14px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:#143326}
+.opt.wrong{border-color:var(--bad);background:#3a1a1a}
+.explain{background:var(--panel2);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin-top:10px}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ok);color:#06281a;padding:10px 16px;border-radius:8px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:800px){.sim-wrap{grid-template-columns:1fr}.qlist{flex-direction:row;flex-wrap:wrap;max-height:none}header{flex-direction:column;align-items:flex-start;gap:8px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>☸ CKA <span>Prep</span></h1>
+  <nav id="nav">
+    <button data-tab="dash" class="active">Dashboard</button>
+    <button data-tab="plan">Study Plan</button>
+    <button data-tab="sim">Exam Simulator</button>
+    <button data-tab="quiz">Quick Quiz</button>
+    <button data-tab="cheat">Cheat Sheet</button>
+  </nav>
+</header>
+
+<main>
+<!-- ================= DASHBOARD ================= -->
+<section id="dash" class="active">
+  <h2>Dashboard</h2>
+  <p class="sub">Certified Kubernetes Administrator: 2 hours, about 15–20 hands-on tasks, 66% to pass, open book (kubernetes.io docs only).</p>
+  <div class="grid g4">
+    <div class="card"><div class="label">Exam date</div>
+      <input type="date" id="examDate" style="margin-top:8px;width:100%">
+      <div id="daysLeft" style="margin-top:8px;color:var(--muted)"></div></div>
+    <div class="card"><div class="label">Study plan progress</div><div class="stat" id="planPct">0%</div><div class="bar"><i id="planBar"></i></div></div>
+    <div class="card"><div class="label">Best mock score</div><div class="stat" id="bestMock">–</div><div id="mockCount" style="color:var(--muted)"></div></div>
+    <div class="card"><div class="label">Quiz accuracy</div><div class="stat" id="quizAcc">–</div><div id="quizCount" style="color:var(--muted)"></div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3 style="margin-top:0">Curriculum domains and your readiness</h3>
+      <p class="sub" style="margin-bottom:10px">Weight = share of exam points. Readiness = your average on that domain's tasks across saved mock exams.</p>
+      <div id="domainBars"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Mock exam history</h3>
+      <div id="history"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="margin-top:0">How to use this page</h3>
+    <ol>
+      <li>Set your exam date above, then work through the <b>Study Plan</b> day by day and tick tasks off as you finish them. Progress is saved in your browser.</li>
+      <li>Do every lab on a real cluster. Your <code>kubeadm</code> two-node lab, <code>kind</code>, or <code>minikube</code> all work. Reading alone won't get you through the CKA.</li>
+      <li>Run the <b>Exam Simulator</b> under real conditions: 2-hour timer, the docs as your only reference, solving each task in your own cluster. After that, grade yourself honestly against the checklist.</li>
+      <li>Use the <b>Quick Quiz</b> to fill concept gaps, and keep the <b>Cheat Sheet</b> open during labs until the commands stick.</li>
+      <li>Registering for the exam gives you <b>2 killer.sh sessions</b> (36 hours each). Save them for week 6, once you're scoring 75% or more here.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= STUDY PLAN ================= -->
+<section id="plan">
+  <div class="row" style="justify-content:space-between">
+    <div><h2>6-Week Study Plan</h2><p class="sub">About 1.5–2 h on weekdays and 3–4 h on weekend lab days. Click a week to expand it.</p></div>
+    <div class="row"><button class="btn ghost sm" id="expandAll">Expand all</button><button class="btn ghost sm" id="resetPlan">Reset progress</button></div>
+  </div>
+  <div id="weeks"></div>
+</section>
+
+<!-- ================= SIMULATOR ================= -->
+<section id="sim">
+  <div id="simHome">
+    <h2>Exam Simulator</h2>
+    <p class="sub">Mock exams in killer.sh style. Solve each task in <b>your own cluster</b> (create the namespaces and objects the task assumes), then grade yourself against the solution checklist.</p>
+    <div class="grid g2" id="examCards"></div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-top:0">Rules (same as the real exam)</h3>
+      <ul>
+        <li>120 minutes. The timer keeps running if you reload or close the page.</li>
+        <li>Each task shows a weight. Points are awarded per completed checklist item, and you need <b>66%</b> to pass.</li>
+        <li>Always run the <code>kubectl config use-context</code> command shown on each task first. On the real exam you'll usually <code>ssh</code> into a different host for each task.</li>
+        <li>Skip hard tasks fast: flag them and come back. Low-weight tasks are just as valuable per minute.</li>
+        <li>Allowed resources: kubernetes.io/docs, kubernetes.io/blog, helm.sh/docs, and gateway-api.sigs.k8s.io.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="simRun" style="display:none"></div>
+</section>
+
+<!-- ================= QUIZ ================= -->
+<section id="quiz">
+  <h2>Quick Quiz</h2>
+  <p class="sub">Concept checks with explanations. Wrong answers come back more often.</p>
+  <div class="row" style="margin-bottom:16px">
+    <select id="quizDomain"><option value="all">All domains</option></select>
+    <button class="btn ghost sm" id="quizResetStats">Reset quiz stats</button>
+    <span id="quizSession" style="color:var(--muted)"></span>
+  </div>
+  <div class="card" id="quizCard"></div>
+</section>
+
+<!-- ================= CHEAT SHEET ================= -->
+<section id="cheat">
+  <h2>Cheat Sheet</h2>
+  <p class="sub">Things to type in the first 60 seconds of the exam, plus commands you should know from memory.</p>
+  <div class="grid g2" id="cheatGrid"></div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   DATA
+   ===================================================================== */
+const DOMAINS = {
+  arch: {name:"Cluster Architecture, Installation & Configuration", weight:25, cls:"d-arch"},
+  work: {name:"Workloads & Scheduling", weight:15, cls:"d-work"},
+  net:  {name:"Services & Networking", weight:20, cls:"d-net"},
+  stor: {name:"Storage", weight:10, cls:"d-stor"},
+  trbl: {name:"Troubleshooting", weight:30, cls:"d-trbl"},
+};
+const D = "https://kubernetes.io/docs/";
+
+const PLAN = [
+ {title:"Week 1: Foundations & Cluster Architecture", days:[
+  {t:"Exam setup & kubectl fluency", d:"arch", tasks:[
+    "Read the CKA curriculum PDF and the Candidate Handbook (exam environment, allowed resources)",
+    "Build a lab: 1 control plane + 1 worker with kubeadm (or kind with 2 nodes)",
+    "Set up alias k=kubectl, bash completion, and export do='--dry-run=client -o yaml' (see Cheat Sheet)",
+    "Practice kubectl explain, -o yaml, --dry-run=client and kubectl create/run for every core object"],
+   links:[["kubectl Quick Reference",D+"reference/kubectl/quick-reference/"],["kubectl explain",D+"reference/kubectl/generated/kubectl_explain/"]]},
+  {t:"Cluster components & static pods", d:"arch", tasks:[
+    "Explain the role of kube-apiserver, etcd, scheduler, controller-manager, kubelet, kube-proxy",
+    "Inspect /etc/kubernetes/manifests and understand how kubelet runs static pods",
+    "Use crictl ps, crictl logs, crictl inspect on the control plane",
+    "Create your own static pod on the worker node, then delete it"],
+   links:[["Components",D+"concepts/overview/components/"],["Static Pods",D+"tasks/configure-pod-container/static-pod/"],["crictl",D+"tasks/debug/debug-cluster/crictl/"]]},
+  {t:"Install a cluster with kubeadm", d:"arch", tasks:[
+    "Install containerd and configure SystemdCgroup = true",
+    "Install kubeadm/kubelet/kubectl from pkgs.k8s.io and hold the packages",
+    "kubeadm init with --pod-network-cidr, install a CNI (Calico/Flannel/Cilium)",
+    "Join the worker with kubeadm token create --print-join-command"],
+   links:[["Installing kubeadm",D+"setup/production-environment/tools/kubeadm/install-kubeadm/"],["Creating a cluster",D+"setup/production-environment/tools/kubeadm/create-cluster-kubeadm/"]]},
+  {t:"Cluster upgrades", d:"arch", tasks:[
+    "Upgrade the control plane by one minor version (kubeadm upgrade plan / apply)",
+    "Drain, upgrade kubelet+kubectl, uncordon the control plane",
+    "Upgrade the worker (kubeadm upgrade node)",
+    "Know how to switch the pkgs.k8s.io repo to the next minor version"],
+   links:[["Upgrading kubeadm clusters",D+"tasks/administer-cluster/kubeadm/kubeadm-upgrade/"],["Changing the package repository",D+"tasks/administer-cluster/kubeadm/change-package-repository/"]]},
+  {t:"etcd backup & restore", d:"arch", tasks:[
+    "Find etcd endpoints and cert paths from /etc/kubernetes/manifests/etcd.yaml",
+    "etcdctl snapshot save with --cacert/--cert/--key",
+    "Restore with etcdutl snapshot restore --data-dir and repoint the etcd hostPath",
+    "Verify: create a pod, take a snapshot, delete the pod, restore, and confirm the pod is back"],
+   links:[["Operating etcd",D+"tasks/administer-cluster/configure-upgrade-etcd/"]]},
+  {t:"Weekend lab", d:"arch", weekend:true, tasks:[
+    "Tear down and rebuild the cluster from scratch, with a target of under 30 minutes",
+    "Timed drill: etcd backup + restore in under 10 minutes",
+    "Timed drill: worker node upgrade in under 10 minutes",
+    "Take 20 questions in the Quick Quiz (Cluster Architecture)"]},
+ ]},
+ {title:"Week 2: Security, Helm, Kustomize & Extensions", days:[
+  {t:"RBAC & ServiceAccounts", d:"arch", tasks:[
+    "Create Role/RoleBinding and ClusterRole/ClusterRoleBinding imperatively",
+    "Bind a ClusterRole with a RoleBinding (namespace-scoped use of a cluster role)",
+    "Verify with kubectl auth can-i ... --as system:serviceaccount:ns:sa",
+    "Mount a ServiceAccount token in a pod and call the API with curl"],
+   links:[["RBAC",D+"reference/access-authn-authz/rbac/"],["Service Accounts",D+"tasks/configure-pod-container/configure-service-account/"]]},
+  {t:"kubeconfig, certificates & CSR", d:"arch", tasks:[
+    "Add a user to kubeconfig: set-credentials, set-context, use-context",
+    "Create a user via the CertificateSigningRequest API, then approve it",
+    "kubeadm certs check-expiration and kubeadm certs renew",
+    "Read cert details with openssl x509 -in ... -noout -text"],
+   links:[["Certificates & CSR",D+"reference/access-authn-authz/certificate-signing-requests/"],["kubeadm certs",D+"tasks/administer-cluster/kubeadm/kubeadm-certs/"],["kubeconfig",D+"concepts/configuration/organize-cluster-access-kubeconfig/"]]},
+  {t:"Helm", d:"arch", tasks:[
+    "helm repo add/update, search repo --versions",
+    "install / upgrade / rollback / uninstall with --set and -f values.yaml",
+    "helm ls -A -a (find failed and pending releases), helm get values, helm history",
+    "helm template to render manifests without installing"],
+   links:[["Helm docs",'https://helm.sh/docs/intro/using_helm/']]},
+  {t:"Kustomize", d:"arch", tasks:[
+    "Build a base plus dev/prod overlays",
+    "Use namePrefix, commonLabels/labels, images, replicas, and patches",
+    "kubectl kustomize dir/ vs kubectl apply -k dir/",
+    "Generate ConfigMaps/Secrets with configMapGenerator"],
+   links:[["Kustomize",D+"tasks/manage-kubernetes-objects/kustomization/"]]},
+  {t:"CRDs, Operators & extension interfaces", d:"arch", tasks:[
+    "Create a CRD and a custom resource instance; kubectl get crd, kubectl api-resources",
+    "Install an operator (e.g. cert-manager) and inspect its CRDs",
+    "Know what CNI, CSI and CRI are, and where their config lives (/etc/cni/net.d, containerd socket)",
+    "Review admission controllers and the kube-apiserver flags in its manifest"],
+   links:[["CRDs",D+"tasks/extend-kubernetes/custom-resources/custom-resource-definitions/"],["Operator pattern",D+"concepts/extend-kubernetes/operator/"]]},
+  {t:"Weekend lab", d:"arch", weekend:true, tasks:[
+    "Create a dev user with a cert who can only manage Deployments in ns dev",
+    "Deploy one app three ways: plain YAML, Helm chart, Kustomize overlay",
+    "Quick Quiz: all domains, 30 questions",
+    "Review every wrong quiz answer in the docs"]},
+ ]},
+ {title:"Week 3: Workloads & Scheduling", days:[
+  {t:"Deployments & rollouts", d:"work", tasks:[
+    "kubectl create deploy, scale, set image, rollout status/history/undo --to-revision",
+    "RollingUpdate maxSurge/maxUnavailable vs Recreate",
+    "kubectl annotate ... kubernetes.io/change-cause for rollout history",
+    "Pause and resume a rollout"],
+   links:[["Deployments",D+"concepts/workloads/controllers/deployment/"]]},
+  {t:"ConfigMaps & Secrets", d:"work", tasks:[
+    "Create from literals, files and env files",
+    "Consume as env, envFrom, and as mounted volumes (including subPath and items)",
+    "Decode a secret: kubectl get secret x -o jsonpath='{.data.key}' | base64 -d",
+    "Make a ConfigMap immutable"],
+   links:[["ConfigMaps",D+"concepts/configuration/configmap/"],["Secrets",D+"concepts/configuration/secret/"]]},
+  {t:"Scheduling", d:"work", tasks:[
+    "nodeSelector, nodeAffinity (required/preferred), podAntiAffinity with topologyKey",
+    "Taints & tolerations, including scheduling onto the control plane",
+    "Manual scheduling with spec.nodeName",
+    "PriorityClass and preemption; topologySpreadConstraints"],
+   links:[["Assign Pods to Nodes",D+"concepts/scheduling-eviction/assign-pod-node/"],["Taints",D+"concepts/scheduling-eviction/taint-and-toleration/"],["PriorityClass",D+"concepts/scheduling-eviction/pod-priority-preemption/"]]},
+  {t:"Resources & autoscaling", d:"work", tasks:[
+    "requests/limits, QoS classes (Guaranteed, Burstable, BestEffort)",
+    "LimitRange and ResourceQuota in a namespace",
+    "Install metrics-server; create an HPA (autoscaling/v2) and load-test it",
+    "Know the in-place pod resize concept and VPA at a high level"],
+   links:[["Resource Management",D+"concepts/configuration/manage-resources-containers/"],["HPA walkthrough",D+"tasks/run-application/horizontal-pod-autoscale-walkthrough/"],["ResourceQuota",D+"concepts/policy/resource-quotas/"]]},
+  {t:"Other workload types & pod design", d:"work", tasks:[
+    "DaemonSet (including running on control plane nodes), StatefulSet + headless Service",
+    "Job (completions/parallelism/backoffLimit) and CronJob",
+    "Init containers and native sidecars (initContainer with restartPolicy: Always)",
+    "Liveness, readiness and startup probes"],
+   links:[["DaemonSet",D+"concepts/workloads/controllers/daemonset/"],["Sidecar containers",D+"concepts/workloads/pods/sidecar-containers/"],["Probes",D+"tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"]]},
+  {t:"Weekend lab", d:"work", weekend:true, tasks:[
+    "Mock Exam A: do only the Workloads tasks, timed",
+    "Build a StatefulSet with 3 replicas and per-pod PVCs; scale it down and up",
+    "Write 5 YAMLs from memory: Pod with probes, Deployment, DaemonSet, CronJob, HPA",
+    "Quick Quiz: Workloads domain"]},
+ ]},
+ {title:"Week 4: Services, Networking & Storage", days:[
+  {t:"Services & DNS", d:"net", tasks:[
+    "ClusterIP, NodePort, LoadBalancer, ExternalName, and headless Services",
+    "kubectl expose; inspect EndpointSlices",
+    "Service and pod DNS names: svc.ns.svc.cluster.local, test with busybox nslookup",
+    "Read the CoreDNS ConfigMap and Corefile"],
+   links:[["Service",D+"concepts/services-networking/service/"],["DNS for Services and Pods",D+"concepts/services-networking/dns-pod-service/"]]},
+  {t:"Ingress & Gateway API", d:"net", tasks:[
+    "Install an ingress controller; create an Ingress with host + path rules and TLS",
+    "Understand GatewayClass → Gateway → HTTPRoute",
+    "Create an HTTPRoute with path matches, header matches, and weighted backends",
+    "Migrate an Ingress to a Gateway + HTTPRoute"],
+   links:[["Ingress",D+"concepts/services-networking/ingress/"],["Gateway API",D+"concepts/services-networking/gateway/"],["Gateway API docs",'https://gateway-api.sigs.k8s.io/']]},
+  {t:"NetworkPolicies", d:"net", tasks:[
+    "Default-deny ingress and egress per namespace",
+    "Allow by podSelector, namespaceSelector (kubernetes.io/metadata.name), and ipBlock",
+    "Understand AND vs OR semantics in from/to blocks",
+    "Remember to allow DNS (UDP/TCP 53) when restricting egress"],
+   links:[["Network Policies",D+"concepts/services-networking/network-policies/"]]},
+  {t:"Storage", d:"stor", tasks:[
+    "PV (hostPath), PVC, binding rules: capacity, accessModes, storageClassName",
+    "StorageClass, dynamic provisioning, default class annotation, volumeBindingMode",
+    "Reclaim policies, allowVolumeExpansion, and resizing a PVC",
+    "emptyDir and hostPath volumes; shared volumes between containers"],
+   links:[["Persistent Volumes",D+"concepts/storage/persistent-volumes/"],["Storage Classes",D+"concepts/storage/storage-classes/"],["Configure PV storage",D+"tasks/configure-pod-container/configure-persistent-volume-storage/"]]},
+  {t:"Cluster networking internals", d:"net", tasks:[
+    "Pod-to-pod networking model, CNI plugins, pod CIDR vs service CIDR",
+    "kube-proxy modes (iptables/IPVS/nftables); find the service CIDR in the kube-apiserver manifest",
+    "Inspect /etc/cni/net.d and the CNI pods in kube-system",
+    "Debug connectivity with a netshoot or busybox pod (wget, nc, nslookup)"],
+   links:[["Cluster Networking",D+"concepts/cluster-administration/networking/"],["Debug Services",D+"tasks/debug/debug-application/debug-service/"]]},
+  {t:"Weekend: full mock", d:"net", weekend:true, tasks:[
+    "Take Mock Exam A in full under exam conditions (2 h)",
+    "Grade honestly and save the result",
+    "Redo every task you scored below 100% without looking at the solution",
+    "Write down the 3 slowest tasks and drill them"]},
+ ]},
+ {title:"Week 5: Troubleshooting (30% of the exam)", days:[
+  {t:"Application troubleshooting", d:"trbl", tasks:[
+    "Workflow: get → describe → logs (--previous) → events → exec",
+    "Fix CrashLoopBackOff, ImagePullBackOff, Pending (resources/taints/PVC), CreateContainerConfigError",
+    "kubectl debug with ephemeral containers and node debugging",
+    "kubectl get events -A --sort-by=.metadata.creationTimestamp"],
+   links:[["Debug Pods",D+"tasks/debug/debug-application/debug-pods/"],["Debug Running Pods",D+"tasks/debug/debug-application/debug-running-pod/"]]},
+  {t:"Control plane troubleshooting", d:"trbl", tasks:[
+    "Break the scheduler/apiserver/controller-manager manifests on purpose, then fix them",
+    "When kubectl doesn't work: crictl ps -a, crictl logs, /var/log/pods, journalctl -u kubelet",
+    "Check etcd health with etcdctl endpoint health",
+    "Know the symptoms: pods stuck Pending (scheduler); Deployments not creating pods (controller-manager)"],
+   links:[["Troubleshooting Clusters",D+"tasks/debug/debug-cluster/"]]},
+  {t:"Node troubleshooting", d:"trbl", tasks:[
+    "Node NotReady: systemctl status kubelet, journalctl -u kubelet -f",
+    "Fix a broken kubelet config (/var/lib/kubelet/config.yaml), a wrong binary path, or an expired cert",
+    "Check containerd: systemctl status containerd, crictl info",
+    "Check node conditions: MemoryPressure, DiskPressure, PIDPressure"],
+   links:[["kubelet config file",D+"tasks/administer-cluster/kubelet-config-file/"]]},
+  {t:"Network troubleshooting", d:"trbl", tasks:[
+    "Service has no endpoints: selector/label mismatch, wrong targetPort",
+    "DNS failing: CoreDNS pods, kube-dns Service, /etc/resolv.conf in the pod",
+    "NetworkPolicy blocking traffic; kube-proxy not running",
+    "Drill: have a friend (or a script) break 5 things and fix them all in 20 minutes"],
+   links:[["Debugging DNS",D+"tasks/administer-cluster/dns-debugging-resolution/"]]},
+  {t:"Monitoring & logging", d:"trbl", tasks:[
+    "kubectl top node / pod --containers --sort-by=cpu",
+    "Container logs: -c, --all-containers, -l selector, --since, --tail",
+    "Where logs live on the node: /var/log/pods, /var/log/containers",
+    "Custom columns & jsonpath output to files (common exam pattern)"],
+   links:[["Resource metrics pipeline",D+"tasks/debug/debug-cluster/resource-metrics-pipeline/"],["JSONPath",D+"reference/kubectl/jsonpath/"]]},
+  {t:"Weekend: full mock", d:"trbl", weekend:true, tasks:[
+    "Take Mock Exam B in full under exam conditions (2 h)",
+    "Grade and save; compare domain readiness on the Dashboard",
+    "Redo low-scoring tasks from both mock exams",
+    "Quick Quiz until accuracy is 85% or higher"]},
+ ]},
+ {title:"Week 6: killer.sh & Final Review", days:[
+  {t:"Weak-domain sprint", d:"trbl", tasks:[
+    "Open the Dashboard and pick your lowest-readiness domain",
+    "Redo the plan days for that domain",
+    "Redo both mocks for that domain's tasks only"]},
+  {t:"killer.sh session #1", d:"arch", tasks:[
+    "Activate killer.sh session #1 (it is harder than the real exam; 50–60% there is fine)",
+    "Do it timed, in one sitting",
+    "Spend the remaining session time studying the detailed solutions"]},
+  {t:"Speed drills", d:"work", tasks:[
+    "Generate YAML for 10 objects using only imperative commands + dry-run",
+    "Practice finding things fast in kubernetes.io docs search",
+    "Practice vim: copy/paste blocks, indent (>, <), :set paste"]},
+  {t:"killer.sh session #2", d:"net", tasks:[
+    "Activate session #2 and redo the whole simulator; aim for 80% or more",
+    "Re-do any task you couldn't solve in under 8 minutes"]},
+  {t:"Exam logistics & rest", d:"stor", tasks:[
+    "Run the PSI system check; clear your desk; have a valid government ID ready",
+    "Review the Cheat Sheet one last time",
+    "Sleep. Seriously."]},
+  {t:"Exam day", d:"trbl", weekend:true, tasks:[
+    "Check in 30 minutes early",
+    "First 2 minutes: alias/vim setup, read every task title, do the easy ones first",
+    "Always switch context / ssh to the right host before each task",
+    "Leave 10 minutes at the end to revisit flagged tasks"]},
+ ]},
+];
+
+/* ---------- Mock exams ---------- */
+const EXAMS = {
+A: {name:"Mock Exam A", desc:"Balanced coverage of all 5 domains. Good first full mock.", qs:[
+ {d:"arch", w:2, ctx:"k8s-c1", title:"Contexts & kubeconfig",
+  task:`<p>Write the names of all kubeconfig contexts, one per line, into <code>/opt/exam/a01/contexts</code>.</p>
+<p>Then write a command to <code>/opt/exam/a01/server.sh</code> that prints the API server URL of the cluster named <code>k8s-c1</code> using <b>jsonpath</b>.</p>`,
+  sol:`kubectl config get-contexts -o name > /opt/exam/a01/contexts
+
+echo "kubectl config view -o jsonpath='{.clusters[?(@.name==\\"k8s-c1\\")].cluster.server}'" > /opt/exam/a01/server.sh
+bash /opt/exam/a01/server.sh   # verify it prints https://...:6443`,
+  checks:["contexts file contains every context name, one per line","server.sh uses jsonpath and prints the correct URL"],
+  hint:"kubectl config get-contexts has an -o name option. jsonpath filter syntax: ?(@.name==\"x\")"},
+
+ {d:"work", w:4, ctx:"k8s-c1", title:"Pod on the control plane",
+  task:`<p>Create a Pod named <code>cp-probe</code> in namespace <code>default</code> with image <code>nginx:1.27-alpine</code> and container name <code>probe</code>.</p>
+<p>It must run <b>only on control plane nodes</b>. Do not add new labels to any node.</p>`,
+  sol:`kubectl run cp-probe --image=nginx:1.27-alpine $do > a02.yaml
+# edit a02.yaml:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cp-probe
+spec:
+  containers:
+  - name: probe                    # rename container
+    image: nginx:1.27-alpine
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    effect: NoSchedule
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+kubectl apply -f a02.yaml
+kubectl get pod cp-probe -o wide    # NODE = controlplane`,
+  checks:["Pod named cp-probe with container name probe and correct image","Toleration for the control-plane NoSchedule taint","nodeSelector (or nodeAffinity) restricts to control plane","Pod is Running on the control plane node"],
+  hint:"Check the taint: kubectl describe node <cp> | grep -i taint. Control plane nodes carry an existing label you can select."},
+
+ {d:"work", w:3, ctx:"k8s-c1", title:"Deployment rollout & rollback",
+  task:`<p>In namespace <code>shop</code>, Deployment <code>checkout</code> runs <code>nginx:1.26</code>.</p>
+<ul><li>Update the image to <code>nginx:1.27</code> and wait for the rollout to finish.</li>
+<li>Then update to <code>nginx:1.99-doesnotexist</code>, see that it fails, and <b>roll back</b> to the working revision.</li>
+<li>Write the revision number that is currently active into <code>/opt/exam/a03/revision</code>.</li></ul>`,
+  sol:`k -n shop set image deploy/checkout nginx=nginx:1.27     # container name: check with k get deploy -o yaml
+k -n shop rollout status deploy/checkout
+k -n shop set image deploy/checkout nginx=nginx:1.99-doesnotexist
+k -n shop get pod          # ImagePullBackOff
+k -n shop rollout undo deploy/checkout
+k -n shop rollout history deploy/checkout
+k -n shop get deploy checkout -o jsonpath='{.metadata.annotations.deployment\\.kubernetes\\.io/revision}' > /opt/exam/a03/revision`,
+  checks:["Deployment runs nginx:1.27 with all replicas ready","Broken revision was rolled back (no ImagePullBackOff pods remain)","Correct current revision written to file"],
+  hint:"rollout undo goes back one revision; the undone revision gets a new, higher number."},
+
+ {d:"work", w:4, ctx:"k8s-c1", title:"Horizontal Pod Autoscaler",
+  task:`<p>Namespace <code>orion</code> has Deployment <code>api</code>.</p>
+<ul><li>Create an HPA named <code>api</code> that keeps between <b>2</b> and <b>8</b> replicas, targeting <b>65%</b> average CPU utilization.</li>
+<li>Add a scale-down stabilization window of <b>120 seconds</b>.</li></ul>`,
+  sol:`apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: orion
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+
+# Tip: generate a skeleton with
+# k -n orion autoscale deploy api --min=2 --max=8 --cpu-percent=65 $do
+# (the pods need CPU requests set, otherwise TARGETS shows <unknown>)`,
+  checks:["HPA uses autoscaling/v2 targeting Deployment api","min 2 / max 8 / CPU 65% utilization","scaleDown stabilizationWindowSeconds: 120"],
+  hint:"The imperative command can't set behavior. Generate YAML first, then edit it."},
+
+ {d:"stor", w:7, ctx:"k8s-c1", title:"PV, PVC & Deployment",
+  task:`<p>Create a PersistentVolume <code>ledger-pv</code>: capacity <b>2Gi</b>, accessMode <b>ReadWriteOnce</b>, hostPath <code>/srv/ledger</code>, <b>no</b> storageClassName.</p>
+<p>In namespace <code>finance</code> create PVC <code>ledger-pvc</code> requesting <b>2Gi</b> RWO, also with no storageClassName. It must bind to the PV.</p>
+<p>Create Deployment <code>ledger</code> (image <code>httpd:2.4-alpine</code>) in <code>finance</code> that mounts the volume at <code>/usr/local/apache2/htdocs</code>.</p>`,
+  sol:`apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ledger-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes: [ReadWriteOnce]
+  hostPath:
+    path: /srv/ledger
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ledger-pvc
+  namespace: finance
+spec:
+  storageClassName: ""        # explicitly empty, so the default SC isn't applied
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+# k -n finance create deploy ledger --image=httpd:2.4-alpine $do > dep.yaml, then add:
+    spec:
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: ledger-pvc
+      containers:
+      - name: httpd
+        image: httpd:2.4-alpine
+        volumeMounts:
+        - name: data
+          mountPath: /usr/local/apache2/htdocs
+
+k -n finance get pvc     # STATUS Bound, VOLUME ledger-pv`,
+  checks:["PV with correct capacity, mode, hostPath and no storageClassName","PVC created and Bound to ledger-pv","Deployment mounts the PVC at the right path","Deployment pods are Running"],
+  hint:"If a default StorageClass exists, a PVC without storageClassName gets the default class and won't bind to your PV. Set storageClassName: \"\"."},
+
+ {d:"trbl", w:2, ctx:"k8s-c1", title:"Resource usage",
+  task:`<p>Write a command to <code>/opt/exam/a06/nodes.sh</code> that shows resource usage of all nodes.</p>
+<p>Write a command to <code>/opt/exam/a06/pods.sh</code> that shows resource usage of all pods <b>and their containers</b> in all namespaces, sorted by memory.</p>`,
+  sol:`echo 'kubectl top node' > /opt/exam/a06/nodes.sh
+echo 'kubectl top pod -A --containers --sort-by=memory' > /opt/exam/a06/pods.sh`,
+  checks:["nodes.sh correct","pods.sh includes --containers, -A and --sort-by=memory"]},
+
+ {d:"arch", w:8, ctx:"k8s-c1", title:"etcd backup & restore",
+  task:`<p>On the control plane node, take an etcd snapshot to <code>/opt/exam/a07/etcd-snap.db</code>.</p>
+<p>Then create a Pod <code>canary</code> (image <code>busybox</code>, command <code>sleep 1d</code>) in <code>default</code>.</p>
+<p>Restore the snapshot so the cluster goes back to its previous state (the Pod <code>canary</code> must no longer exist). Use <code>/var/lib/etcd-restore</code> as the new data dir.</p>`,
+  sol:`ssh controlplane
+sudo -i
+grep -E 'cert|key|listen-client' /etc/kubernetes/manifests/etcd.yaml   # find cert paths
+
+ETCDCTL_API=3 etcdctl snapshot save /opt/exam/a07/etcd-snap.db \\
+  --endpoints=https://127.0.0.1:2379 \\
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\
+  --cert=/etc/kubernetes/pki/etcd/server.crt \\
+  --key=/etc/kubernetes/pki/etcd/server.key
+
+kubectl run canary --image=busybox -- sleep 1d
+
+# stop control plane static pods (optional but safer)
+mkdir /root/manifests-bak && mv /etc/kubernetes/manifests/*.yaml /root/manifests-bak/
+# restore (etcdutl is the current tool; "etcdctl snapshot restore" is deprecated)
+etcdutl snapshot restore /opt/exam/a07/etcd-snap.db --data-dir /var/lib/etcd-restore
+# point etcd at the new dir: edit /root/manifests-bak/etcd.yaml
+#   volumes: - hostPath: path: /var/lib/etcd-restore   (name: etcd-data)
+mv /root/manifests-bak/*.yaml /etc/kubernetes/manifests/
+watch crictl ps            # wait for etcd + apiserver
+kubectl get pod canary     # NotFound`,
+  checks:["Snapshot file exists and is valid (etcdutl snapshot status)","Restore performed into /var/lib/etcd-restore","etcd manifest hostPath points to new data dir","Cluster is healthy and Pod canary is gone"],
+  hint:"Only the hostPath volume needs to change. The --data-dir flag inside the container can stay /var/lib/etcd."},
+
+ {d:"arch", w:8, ctx:"k8s-c2", title:"Upgrade a worker node",
+  task:`<p>The control plane of cluster <code>k8s-c2</code> was already upgraded to the next patch/minor version. Worker <code>c2-node1</code> is still on the old version.</p>
+<p>Upgrade <b>kubeadm, kubelet and kubectl</b> on <code>c2-node1</code> to exactly match the control plane version, with minimal disruption to workloads.</p>`,
+  sol:`k get node                        # note the control plane version, e.g. v1.34.1
+k drain c2-node1 --ignore-daemonsets --delete-emptydir-data
+
+ssh c2-node1
+sudo -i
+# if the MINOR version changes, first edit /etc/apt/sources.list.d/kubernetes.list -> v1.34
+apt-get update
+apt-cache madison kubeadm         # find exact pkg version, e.g. 1.34.1-1.1
+apt-mark unhold kubeadm kubelet kubectl
+apt-get install -y kubeadm=1.34.1-1.1
+kubeadm upgrade node
+apt-get install -y kubelet=1.34.1-1.1 kubectl=1.34.1-1.1
+apt-mark hold kubeadm kubelet kubectl
+systemctl daemon-reload && systemctl restart kubelet
+exit; exit
+
+k uncordon c2-node1
+k get node                        # both on v1.34.1, Ready`,
+  checks:["Node drained before upgrade","kubeadm upgraded and 'kubeadm upgrade node' run","kubelet + kubectl upgraded and kubelet restarted","Node uncordoned, Ready, showing the correct version"],
+  hint:"Workers use 'kubeadm upgrade node', not 'upgrade apply'."},
+
+ {d:"arch", w:5, ctx:"k8s-c1", title:"RBAC for a ServiceAccount",
+  task:`<p>In namespace <code>pipeline</code>, create ServiceAccount <code>deployer</code>.</p>
+<p>Give it permission to <b>create, update and delete Deployments</b> and to <b>get/list Pods</b>, only in namespace <code>pipeline</code>. Use a Role and RoleBinding, both named <code>deployer</code>.</p>`,
+  sol:`k -n pipeline create sa deployer
+k -n pipeline create role deployer --verb=create,update,delete --resource=deployments.apps $do > role.yaml
+# add a 2nd rule for pods, or create via one command per rule set:
+#  rules:
+#  - apiGroups: ["apps"]
+#    resources: ["deployments"]
+#    verbs: ["create","update","delete"]
+#  - apiGroups: [""]
+#    resources: ["pods"]
+#    verbs: ["get","list"]
+k apply -f role.yaml
+k -n pipeline create rolebinding deployer --role=deployer --serviceaccount=pipeline:deployer
+
+k -n pipeline auth can-i delete deploy --as system:serviceaccount:pipeline:deployer   # yes
+k -n pipeline auth can-i list pods     --as system:serviceaccount:pipeline:deployer   # yes
+k -n pipeline auth can-i delete pods   --as system:serviceaccount:pipeline:deployer   # no
+k -n default  auth can-i delete deploy --as system:serviceaccount:pipeline:deployer   # no`,
+  checks:["ServiceAccount exists","Role grants deployments (apps) create/update/delete","Role grants pods get/list and nothing more","RoleBinding binds Role to the SA; can-i checks pass"]},
+
+ {d:"work", w:5, ctx:"k8s-c1", title:"DaemonSet on every node",
+  task:`<p>Create a DaemonSet <code>node-agent</code> in namespace <code>monitoring</code> with image <code>busybox:1.36</code>, command <code>sleep infinity</code>, labels <code>app=node-agent</code>.</p>
+<p>Containers must request <b>10m CPU</b> and <b>16Mi memory</b>. Pods must run on <b>all nodes, including control plane nodes</b>.</p>`,
+  sol:`k -n monitoring create deploy node-agent --image=busybox:1.36 $do -- sleep infinity > ds.yaml
+# edit: kind: DaemonSet, remove replicas/strategy/status, then add:
+spec:
+  template:
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+      containers:
+      - name: busybox
+        image: busybox:1.36
+        command: ["sleep","infinity"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+k apply -f ds.yaml
+k -n monitoring get ds,pod -o wide   # DESIRED = number of nodes`,
+  checks:["Kind DaemonSet with correct name, ns, labels and image","Resource requests 10m / 16Mi","Toleration for control-plane; a pod runs on every node"],
+  hint:"There's no 'kubectl create daemonset'. Generate a Deployment and change the kind."},
+
+ {d:"net", w:6, ctx:"k8s-c1", title:"NetworkPolicy egress",
+  task:`<p>In namespace <code>bank</code>, pods with label <code>tier=api</code> must only be allowed outgoing traffic to:</p>
+<ul><li>pods with label <code>tier=db</code> on TCP port <b>5432</b></li>
+<li>pods with label <code>tier=cache</code> on TCP port <b>6379</b></li>
+<li>DNS (UDP and TCP 53) to any destination</li></ul>
+<p>Name the policy <code>api-egress</code>. Incoming traffic must stay unaffected.</p>`,
+  sol:`apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-egress
+  namespace: bank
+spec:
+  podSelector:
+    matchLabels:
+      tier: api
+  policyTypes:
+  - Egress                 # only Egress -> ingress stays open
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: db
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  - ports:                 # no "to" = any destination
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53`,
+  checks:["Policy selects tier=api in ns bank, policyTypes Egress only","db:5432 and cache:6379 in SEPARATE rules (not a cross-product)","DNS 53 UDP+TCP allowed","Tested: api can reach db:5432 but not db:6379"],
+  hint:"One rule with both selectors and both ports would allow db:6379 too. Use two rules."},
+
+ {d:"net", w:6, ctx:"k8s-c1", title:"Gateway API HTTPRoute",
+  task:`<p>A Gateway <code>public-gw</code> already exists in namespace <code>edge</code> with a listener for hostname <code>store.example.com</code>.</p>
+<p>Create an HTTPRoute <code>store-route</code> in namespace <code>edge</code> that:</p>
+<ul><li>sends path prefix <code>/api</code> to Service <code>store-api</code> port <b>8080</b></li>
+<li>sends requests with header <code>X-Canary: true</code> on any path to Service <code>store-canary</code> port <b>80</b></li>
+<li>sends everything else to Service <code>store-web</code> port <b>80</b></li></ul>`,
+  sol:`apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: store-route
+  namespace: edge
+spec:
+  parentRefs:
+  - name: public-gw
+  hostnames:
+  - store.example.com
+  rules:
+  - matches:
+    - headers:
+      - name: X-Canary
+        value: "true"
+    backendRefs:
+    - name: store-canary
+      port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backendRefs:
+    - name: store-api
+      port: 8080
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: store-web
+      port: 80
+
+k -n edge get httproute store-route -o yaml   # status.parents: Accepted=True`,
+  checks:["parentRefs references public-gw, hostname set","/api → store-api:8080","Header X-Canary: true → store-canary:80","Default / → store-web:80; route Accepted"],
+  hint:"Header matches take precedence over path matches in Gateway API, so rule order in YAML doesn't change precedence."},
+
+ {d:"trbl", w:8, ctx:"k8s-c2", title:"Node NotReady",
+  task:`<p>Node <code>c2-node1</code> in cluster <code>k8s-c2</code> is <b>NotReady</b>. Find the cause and fix it so the node becomes Ready and stays Ready after a reboot.</p>
+<p>Write the root cause in one sentence to <code>/opt/exam/a13/cause.txt</code>.</p>
+<p class="tag">Lab setup: on your worker, break it with e.g. <code>systemctl stop kubelet &amp;&amp; systemctl disable kubelet</code>, or change the ExecStart path in the kubelet drop-in.</p>`,
+  sol:`k get node; k describe node c2-node1     # "Kubelet stopped posting node status"
+ssh c2-node1
+sudo -i
+systemctl status kubelet                  # inactive? failed?
+journalctl -u kubelet --no-pager | tail -30
+
+# common causes and fixes:
+# 1) kubelet stopped/disabled:
+systemctl enable --now kubelet
+# 2) wrong binary path in drop-in:
+cat /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf   # ExecStart=/usr/local/bin/kubelet ?
+which kubelet                                                    # /usr/bin/kubelet
+#    fix the path, then:
+systemctl daemon-reload && systemctl restart kubelet
+# 3) bad /var/lib/kubelet/config.yaml (e.g. wrong clientCAFile path) -> fix file, restart
+# 4) containerd down -> systemctl enable --now containerd
+
+echo "kubelet service was disabled/stopped (or wrong path ...)" > /opt/exam/a13/cause.txt
+k get node c2-node1    # Ready`,
+  checks:["Root cause found via systemctl/journalctl","Fix applied and kubelet enabled (survives reboot)","Node Ready","cause.txt written"]},
+
+ {d:"trbl", w:6, ctx:"k8s-c1", title:"Pods stuck Pending",
+  task:`<p>New Pods in cluster <code>k8s-c1</code> stay in <b>Pending</b> forever, and <code>kubectl describe</code> shows no events about scheduling.</p>
+<p>Fix the responsible control plane component. Then create Pod <code>sched-test</code> (image <code>nginx</code>) and verify it gets scheduled.</p>
+<p class="tag">Lab setup: break <code>/etc/kubernetes/manifests/kube-scheduler.yaml</code>, e.g. change the command to <code>kube-schedulerr</code> or the kubeconfig path.</p>`,
+  sol:`k -n kube-system get pod | grep scheduler      # CrashLoopBackOff / missing
+ssh controlplane; sudo -i
+crictl ps -a | grep scheduler
+crictl logs <container-id>                     # or: ls /var/log/pods/kube-system_kube-scheduler*
+vim /etc/kubernetes/manifests/kube-scheduler.yaml   # fix typo in command / --kubeconfig path
+# kubelet recreates the static pod automatically (wait ~30s)
+k -n kube-system get pod -l component=kube-scheduler
+k run sched-test --image=nginx
+k get pod sched-test -o wide                   # Running on a node`,
+  checks:["Identified kube-scheduler as the broken component","Fixed static pod manifest; scheduler Running","sched-test is Running"],
+  hint:"No 'Scheduled' events at all = the scheduler isn't running. If kubectl itself fails, look at crictl and /var/log/pods."},
+
+ {d:"net", w:4, ctx:"k8s-c1", title:"Expose a Deployment",
+  task:`<p>In namespace <code>web</code> create Deployment <code>frontend</code> with image <code>nginx:1.27-alpine</code> and <b>3 replicas</b>.</p>
+<p>Expose it with a <b>NodePort</b> Service <code>frontend-svc</code>: port <b>80</b> → targetPort <b>80</b>, nodePort <b>30080</b>. Verify it with curl from a node.</p>`,
+  sol:`k -n web create deploy frontend --image=nginx:1.27-alpine --replicas=3
+k -n web expose deploy frontend --name=frontend-svc --type=NodePort --port=80 --target-port=80 $do > svc.yaml
+# add under ports:   nodePort: 30080
+k apply -f svc.yaml
+k -n web get ep frontend-svc     # 3 endpoints
+curl http://<node-ip>:30080`,
+  checks:["Deployment with 3 ready replicas","NodePort Service on 80/80/30080","Service has 3 endpoints and curl works"]},
+
+ {d:"arch", w:6, ctx:"k8s-c1", title:"Helm release management",
+  task:`<p>In namespace <code>tools</code>:</p>
+<ul><li>Delete the release <code>legacy-dash</code>.</li>
+<li>Upgrade release <code>metrics-ui</code> to the newest available version of its chart.</li>
+<li>Install a new release <code>cache</code> from chart <code>bitnami/redis</code> with <code>architecture=standalone</code> and <code>auth.enabled=false</code>.</li>
+<li>One release is stuck in <b>pending-install</b>. Find it and remove it.</li></ul>
+<p class="tag">Lab setup: helm repo add bitnami https://charts.bitnami.com/bitnami and install a few releases first.</p>`,
+  sol:`helm -n tools ls -a                       # -a shows failed/pending too
+helm -n tools uninstall legacy-dash
+
+helm repo update
+helm -n tools ls                           # note chart of metrics-ui
+helm search repo <chart> --versions | head
+helm -n tools upgrade metrics-ui <repo>/<chart>     # latest by default
+
+helm -n tools install cache bitnami/redis \\
+  --set architecture=standalone --set auth.enabled=false
+
+helm -n tools ls -a | grep pending
+helm -n tools uninstall <pending-release>`,
+  checks:["legacy-dash uninstalled","metrics-ui upgraded (revision increased, newest chart)","cache installed with both values set (helm get values)","pending-install release removed"]},
+
+ {d:"trbl", w:5, ctx:"k8s-c1", title:"Broken Service",
+  task:`<p>In namespace <code>payments</code>, Service <code>pay-svc</code> should route to the Pods of Deployment <code>pay</code> on container port 8080, but requests time out.</p>
+<p>Fix the Service <b>without changing the Deployment</b>.</p>
+<p class="tag">Lab setup: create the Service with a wrong selector (app=payment) and targetPort 80.</p>`,
+  sol:`k -n payments get ep pay-svc              # <none> -> selector problem
+k -n payments get pod --show-labels       # app=pay
+k -n payments get deploy pay -o yaml | grep -A3 ports   # containerPort 8080
+k -n payments edit svc pay-svc
+#   selector: app: pay
+#   targetPort: 8080
+k -n payments get ep pay-svc              # endpoints present
+k run tmp --rm -it --image=busybox --restart=Never -- wget -qO- -T2 pay-svc.payments:80`,
+  checks:["Selector matches Pod labels","targetPort fixed to 8080","Endpoints exist and the service responds"]},
+]},
+
+B: {name:"Mock Exam B", desc:"Heavier on troubleshooting and the newer 2025+ curriculum topics (Kustomize, sidecars, CRDs, StorageClass).", qs:[
+ {d:"arch", w:3, ctx:"k8s-c1", title:"Join a node",
+  task:`<p>Write the full command a new worker node would need to join cluster <code>k8s-c1</code> into <code>/opt/exam/b01/join.sh</code>. The token must be valid for <b>2 hours</b>.</p>`,
+  sol:`ssh controlplane
+sudo kubeadm token create --ttl 2h --print-join-command > /opt/exam/b01/join.sh
+sudo kubeadm token list`,
+  checks:["join.sh contains kubeadm join with token + discovery-token-ca-cert-hash","Token TTL 2h"]},
+
+ {d:"arch", w:5, ctx:"k8s-c1", title:"Kustomize overlay",
+  task:`<p>Directory <code>/opt/exam/b02/app</code> contains <code>base/</code> (Deployment <code>api</code>, Service <code>api</code>) and <code>overlays/prod/</code>.</p>
+<p>Edit the <b>prod overlay</b> so that all resources go into namespace <code>prod</code>, get the label <code>env=prod</code>, the Deployment runs <b>4 replicas</b>, and the image is <code>nginx:1.27</code>. Then apply it.</p>`,
+  sol:`# /opt/exam/b02/app/overlays/prod/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+namespace: prod
+labels:
+- pairs:
+    env: prod
+  includeSelectors: false
+replicas:
+- name: api
+  count: 4
+images:
+- name: nginx
+  newTag: "1.27"
+
+k create ns prod
+k kustomize /opt/exam/b02/app/overlays/prod     # preview
+k apply -k /opt/exam/b02/app/overlays/prod
+k -n prod get deploy api -o wide`,
+  checks:["Overlay references base","namespace, label, replicas and image set in kustomization.yaml","Applied with kubectl apply -k; 4 pods Running in prod"],
+  hint:"Kustomize has built-in fields for images and replicas, so you don't need a patch."},
+
+ {d:"work", w:6, ctx:"k8s-c1", title:"Native sidecar container",
+  task:`<p>In namespace <code>logs</code>, Deployment <code>writer</code> writes logs to <code>/var/log/app/app.log</code>.</p>
+<p>Add a <b>native sidecar</b> (an init container that keeps running) named <code>shipper</code>, image <code>busybox:1.36</code>, running <code>tail -F /var/log/app/app.log</code>. Share the log directory between the two containers with an <code>emptyDir</code> volume named <code>logs</code>.</p>
+<p>Afterwards, <code>kubectl logs deploy/writer -c shipper</code> must show the app's log lines.</p>`,
+  sol:`spec:
+  template:
+    spec:
+      volumes:
+      - name: logs
+        emptyDir: {}
+      initContainers:
+      - name: shipper
+        image: busybox:1.36
+        restartPolicy: Always          # makes it a native sidecar
+        command: ["sh","-c","tail -F /var/log/app/app.log"]
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/app
+      containers:
+      - name: writer
+        # ...existing...
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/app
+
+k -n logs logs deploy/writer -c shipper`,
+  checks:["emptyDir volume 'logs' mounted in both containers","shipper is in initContainers with restartPolicy: Always","Pod shows 2/2 ready; logs visible via shipper"]},
+
+ {d:"work", w:4, ctx:"k8s-c1", title:"PriorityClass",
+  task:`<p>Create a PriorityClass <code>critical-apps</code> with value <b>1000000</b>, not the global default, with description <code>for tier-1 services</code>.</p>
+<p>Patch Deployment <code>billing</code> in namespace <code>finance</code> to use it.</p>`,
+  sol:`k create priorityclass critical-apps --value=1000000 --global-default=false --description="for tier-1 services"
+k -n finance patch deploy billing -p '{"spec":{"template":{"spec":{"priorityClassName":"critical-apps"}}}}'
+k -n finance get pod -o custom-columns=NAME:.metadata.name,PRIO:.spec.priority`,
+  checks:["PriorityClass with value 1000000 and description","Deployment pods have priorityClassName critical-apps and priority 1000000"]},
+
+ {d:"net", w:5, ctx:"k8s-c1", title:"Ingress with TLS",
+  task:`<p>In namespace <code>blog</code>, create an Ingress <code>blog</code> with ingressClassName <code>nginx</code> for host <code>blog.example.com</code>:</p>
+<ul><li><code>/</code> (Prefix) → Service <code>blog-web</code> port 80</li>
+<li><code>/admin</code> (Prefix) → Service <code>blog-admin</code> port 8080</li>
+<li>TLS using existing secret <code>blog-tls</code></li></ul>`,
+  sol:`k -n blog create ingress blog --class=nginx \\
+  --rule="blog.example.com/*=blog-web:80,tls=blog-tls" \\
+  --rule="blog.example.com/admin*=blog-admin:8080"
+k -n blog get ingress blog -o yaml     # check pathType Prefix and tls section`,
+  checks:["ingressClassName nginx, host blog.example.com","Two Prefix paths to the correct services/ports","TLS section with secret blog-tls"],
+  hint:"kubectl create ingress --rule 'host/path*=svc:port,tls=secret'. The trailing * means pathType Prefix."},
+
+ {d:"net", w:4, ctx:"k8s-c1", title:"DNS resolution",
+  task:`<p>Service <code>catalog</code> runs in namespace <code>store</code>. Using a temporary busybox pod in namespace <code>default</code>:</p>
+<ul><li>Write the full FQDN of the service to <code>/opt/exam/b06/svc-fqdn</code>.</li>
+<li>Write the <code>nslookup</code> output for that name to <code>/opt/exam/b06/svc-lookup</code>.</li>
+<li>Write the DNS A record name for one of the service's pods (IP-based pod DNS name) to <code>/opt/exam/b06/pod-fqdn</code>.</li></ul>`,
+  sol:`echo catalog.store.svc.cluster.local > /opt/exam/b06/svc-fqdn
+k run dns --rm -i --image=busybox:1.36 --restart=Never -- nslookup catalog.store.svc.cluster.local > /opt/exam/b06/svc-lookup
+k -n store get pod -o wide           # pick IP e.g. 10.244.1.7
+echo 10-244-1-7.store.pod.cluster.local > /opt/exam/b06/pod-fqdn`,
+  checks:["Correct service FQDN","nslookup output saved and resolves","Pod DNS uses dashed IP format"]},
+
+ {d:"stor", w:5, ctx:"k8s-c1", title:"StorageClass & expansion",
+  task:`<p>Create a StorageClass <code>fast-local</code> using provisioner <code>rancher.io/local-path</code>, reclaimPolicy <b>Retain</b>, volumeBindingMode <b>WaitForFirstConsumer</b>, volume expansion allowed.</p>
+<p>Make it the <b>only default</b> StorageClass in the cluster.</p>
+<p>Create PVC <code>db-data</code> (1Gi, RWO) in namespace <code>db</code> that uses it.</p>`,
+  sol:`apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-local
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+
+# remove default from the old one:
+k get sc
+k patch sc <old-default> -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+# PVC with storageClassName: fast-local -> stays Pending until a Pod uses it (WaitForFirstConsumer)`,
+  checks:["StorageClass fields correct","fast-local is the only (default) class","PVC created referencing fast-local"],
+  hint:"Pending PVC + WaitForFirstConsumer is expected until a pod consumes it."},
+
+ {d:"arch", w:4, ctx:"k8s-c1", title:"CRDs & custom resources",
+  task:`<p>Write the names of all CRDs belonging to API group <code>cert-manager.io</code> into <code>/opt/exam/b08/crds</code>.</p>
+<p>A CRD <code>backups.ops.example.com</code> exists (kind <code>Backup</code>, version <code>v1</code>, namespaced). Create a Backup <code>nightly</code> in namespace <code>ops</code> with <code>spec.schedule: "0 2 * * *"</code> and <code>spec.retention: 7</code>.</p>`,
+  sol:`k get crd | grep cert-manager.io | awk '{print $1}' > /opt/exam/b08/crds
+
+k explain backup.spec            # check field names/types
+cat <<EOF | k apply -f -
+apiVersion: ops.example.com/v1
+kind: Backup
+metadata:
+  name: nightly
+  namespace: ops
+spec:
+  schedule: "0 2 * * *"
+  retention: 7
+EOF
+k -n ops get backup nightly`,
+  checks:["crds file lists only cert-manager.io CRDs","Backup nightly created with correct spec"]},
+
+ {d:"arch", w:5, ctx:"k8s-c1", title:"Certificate expiry",
+  task:`<p>On the control plane, find the expiration date of the <b>kube-apiserver</b> serving certificate using <code>openssl</code> and write it to <code>/opt/exam/b09/expiry</code>.</p>
+<p>Write the kubeadm command that shows the expiry of all certificates to <code>/opt/exam/b09/check.sh</code>, and the command that renews the apiserver cert to <code>/opt/exam/b09/renew.sh</code>.</p>`,
+  sol:`ssh controlplane; sudo -i
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -enddate > /opt/exam/b09/expiry
+echo 'kubeadm certs check-expiration' > /opt/exam/b09/check.sh
+echo 'kubeadm certs renew apiserver'  > /opt/exam/b09/renew.sh`,
+  checks:["expiry matches openssl output","check.sh correct","renew.sh correct"]},
+
+ {d:"trbl", w:6, ctx:"k8s-c1", title:"CrashLoopBackOff",
+  task:`<p>Deployment <code>reporter</code> in namespace <code>analytics</code> is in CrashLoopBackOff. Find out why and fix it. The pods must run and the app must read its config from ConfigMap <code>reporter-cfg</code>, key <code>MODE</code>, as env var <code>REPORT_MODE</code>.</p>
+<p class="tag">Lab setup: reference a non-existent ConfigMap key, or set a wrong command.</p>`,
+  sol:`k -n analytics get pod
+k -n analytics describe pod <pod>         # Events / Last State / Exit Code
+k -n analytics logs <pod> --previous      # logs of the crashed container
+k -n analytics get cm reporter-cfg -o yaml
+
+k -n analytics edit deploy reporter
+#   env:
+#   - name: REPORT_MODE
+#     valueFrom:
+#       configMapKeyRef:
+#         name: reporter-cfg
+#         key: MODE
+#   (+ fix the command if it is wrong)
+k -n analytics rollout status deploy reporter`,
+  checks:["Cause found via logs --previous / describe","Env var sourced from ConfigMap key correctly","All replicas Running and Ready"]},
+
+ {d:"trbl", w:5, ctx:"k8s-c1", title:"CoreDNS outage",
+  task:`<p>Pods in the cluster can no longer resolve service names (<code>nslookup kubernetes.default</code> fails). Find the cause and fix it.</p>
+<p class="tag">Lab setup: scale coredns to 0, or break the Corefile (e.g. change <code>forward . /etc/resolv.conf</code> to a bad address or misspell a plugin).</p>`,
+  sol:`k run t --rm -it --image=busybox:1.36 --restart=Never -- nslookup kubernetes.default
+k -n kube-system get deploy coredns; k -n kube-system get pod -l k8s-app=kube-dns
+k -n kube-system get svc kube-dns; k -n kube-system get ep kube-dns
+k -n kube-system logs -l k8s-app=kube-dns
+k -n kube-system get cm coredns -o yaml      # check the Corefile
+
+# fixes:
+k -n kube-system scale deploy coredns --replicas=2
+k -n kube-system edit cm coredns && k -n kube-system rollout restart deploy coredns`,
+  checks:["Diagnosed via CoreDNS pods/logs/Corefile","CoreDNS Running with endpoints on kube-dns","nslookup kubernetes.default works"]},
+
+ {d:"trbl", w:4, ctx:"k8s-c1", title:"Events & logs to file",
+  task:`<p>Write all events from all namespaces, <b>sorted by creation time</b>, to <code>/opt/exam/b12/events</code>.</p>
+<p>Pod <code>legacy</code> in namespace <code>default</code> has restarted several times. Write the logs of its <b>previous</b> container instance to <code>/opt/exam/b12/legacy-prev.log</code>.</p>`,
+  sol:`k get events -A --sort-by=.metadata.creationTimestamp > /opt/exam/b12/events
+k logs legacy --previous > /opt/exam/b12/legacy-prev.log`,
+  checks:["Events file sorted correctly","Previous container logs saved"]},
+
+ {d:"work", w:5, ctx:"k8s-c1", title:"ConfigMap & Secret volume",
+  task:`<p>In namespace <code>cfg</code>:</p>
+<ul><li>Create ConfigMap <code>app-conf</code> from literal <code>LOG_LEVEL=debug</code>.</li>
+<li>Create Secret <code>app-secret</code> with <code>DB_PASS=s3cr3t</code>.</li>
+<li>Create Pod <code>cfg-pod</code> (image <code>busybox:1.36</code>, command <code>sleep 1d</code>) that loads <b>all keys</b> of the ConfigMap as env vars and mounts the Secret read-only at <code>/etc/secret</code>.</li></ul>`,
+  sol:`k -n cfg create cm app-conf --from-literal=LOG_LEVEL=debug
+k -n cfg create secret generic app-secret --from-literal=DB_PASS=s3cr3t
+k -n cfg run cfg-pod --image=busybox:1.36 $do -- sleep 1d > p.yaml
+# add:
+spec:
+  containers:
+  - name: cfg-pod
+    envFrom:
+    - configMapRef:
+        name: app-conf
+    volumeMounts:
+    - name: sec
+      mountPath: /etc/secret
+      readOnly: true
+  volumes:
+  - name: sec
+    secret:
+      secretName: app-secret
+k -n cfg exec cfg-pod -- sh -c 'echo $LOG_LEVEL; cat /etc/secret/DB_PASS'`,
+  checks:["ConfigMap and Secret with correct data","envFrom configMapRef","Secret mounted read-only at /etc/secret; verified via exec"]},
+
+ {d:"arch", w:4, ctx:"k8s-c1", title:"Node maintenance",
+  task:`<p>Node <code>node01</code> needs hardware maintenance. Make sure no new pods are scheduled on it and all existing pods (except DaemonSet pods) are evicted. Then put it back into service.</p>`,
+  sol:`k drain node01 --ignore-daemonsets --delete-emptydir-data   # implies cordon
+k get node node01        # SchedulingDisabled
+k get pod -A -o wide | grep node01   # only DaemonSet pods left
+# ... maintenance ...
+k uncordon node01`,
+  checks:["Node drained with correct flags","Node uncordoned afterwards"],
+  hint:"Pods without a controller block drain. --force deletes them, but they won't come back."},
+
+ {d:"net", w:3, ctx:"k8s-c1", title:"Cluster network facts",
+  task:`<p>Find and write into <code>/opt/exam/b15/info</code>, one per line:</p>
+<ol><li>The name of the CNI plugin used by the cluster</li>
+<li>The Service CIDR (service-cluster-ip-range)</li>
+<li>The kube-proxy mode</li></ol>`,
+  sol:`ls /etc/cni/net.d/                      # e.g. 10-calico.conflist
+k -n kube-system get pod                # calico-node / cilium / kube-flannel ...
+grep service-cluster-ip-range /etc/kubernetes/manifests/kube-apiserver.yaml
+k -n kube-system get cm kube-proxy -o yaml | grep mode     # "" = iptables
+k -n kube-system logs -l k8s-app=kube-proxy | grep -i proxier`,
+  checks:["CNI correct","Service CIDR correct","kube-proxy mode correct"]},
+
+ {d:"work", w:4, ctx:"k8s-c1", title:"Taints & tolerations",
+  task:`<p>Taint node <code>node01</code> with <code>gpu=true:NoSchedule</code>.</p>
+<p>Create Pod <code>trainer</code> (image <code>nginx</code>) that tolerates this taint <b>and</b> runs only on <code>node01</code> using node affinity on the label <code>kubernetes.io/hostname</code>.</p>`,
+  sol:`k taint node node01 gpu=true:NoSchedule
+# pod spec:
+spec:
+  tolerations:
+  - key: gpu
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["node01"]
+  containers:
+  - name: trainer
+    image: nginx`,
+  checks:["Taint applied","Toleration matches key/value/effect","Required nodeAffinity on hostname; pod Running on node01"]},
+
+ {d:"work", w:4, ctx:"k8s-c1", title:"ResourceQuota & LimitRange",
+  task:`<p>In namespace <code>team-a</code>:</p>
+<ul><li>Create ResourceQuota <code>team-a-quota</code>: max <b>10 pods</b>, requests.cpu <b>2</b>, requests.memory <b>4Gi</b>.</li>
+<li>Create LimitRange <code>team-a-limits</code> giving containers a default request of <b>100m/128Mi</b> and a default limit of <b>200m/256Mi</b>.</li></ul>`,
+  sol:`k -n team-a create quota team-a-quota --hard=pods=10,requests.cpu=2,requests.memory=4Gi
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: team-a-limits
+  namespace: team-a
+spec:
+  limits:
+  - type: Container
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    default:
+      cpu: 200m
+      memory: 256Mi
+
+k -n team-a describe quota,limitrange`,
+  checks:["Quota with all 3 hard limits","LimitRange defaultRequest correct","LimitRange default (limits) correct"]},
+]},
+};
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+ {d:"arch",q:"Where does the kubelet look for static Pod manifests on a kubeadm cluster by default?",o:["/etc/kubernetes/pods","/etc/kubernetes/manifests","/var/lib/kubelet/manifests","/etc/kubelet.d"],a:1,e:"staticPodPath in /var/lib/kubelet/config.yaml defaults to /etc/kubernetes/manifests on kubeadm clusters."},
+ {d:"arch",q:"Which command upgrades the control plane components on the FIRST control plane node?",o:["kubeadm upgrade node","kubeadm upgrade apply v1.x.y","kubeadm init --upgrade","apt-get upgrade kube-apiserver"],a:1,e:"'kubeadm upgrade apply' on the first control plane node; 'kubeadm upgrade node' on other control plane nodes and workers."},
+ {d:"arch",q:"Which three TLS files do you pass to etcdctl for a snapshot on a kubeadm cluster?",o:["apiserver.crt/apiserver.key/ca.crt","etcd/ca.crt, etcd/server.crt, etcd/server.key","admin.conf only","sa.key, sa.pub, ca.crt"],a:1,e:"--cacert /etc/kubernetes/pki/etcd/ca.crt --cert .../etcd/server.crt --key .../etcd/server.key (healthcheck-client also works)."},
+ {d:"arch",q:"After 'etcdutl snapshot restore --data-dir /var/lib/etcd-new', what else must you do?",o:["Nothing, etcd picks it up","Update the etcd static pod hostPath volume to /var/lib/etcd-new","Restart kube-proxy","Run kubeadm reset"],a:1,e:"The etcd container mounts the data dir from a hostPath. Point that hostPath at the restored directory."},
+ {d:"arch",q:"Which object binds a ClusterRole to a subject but only within one namespace?",o:["ClusterRoleBinding","RoleBinding","Role","NamespaceBinding"],a:1,e:"A RoleBinding can reference a ClusterRole; permissions then apply only in the RoleBinding's namespace."},
+ {d:"arch",q:"How do you test whether ServiceAccount 'ci' in namespace 'build' can list secrets?",o:["kubectl auth can-i list secrets --as ci","kubectl auth can-i list secrets -n build --as system:serviceaccount:build:ci","kubectl get secrets --sa ci","kubectl rbac check ci"],a:1,e:"ServiceAccount usernames are system:serviceaccount:<ns>:<name>."},
+ {d:"arch",q:"What does 'helm ls' NOT show by default?",o:["deployed releases","releases in failed or pending state (needs -a)","the chart version","the namespace"],a:1,e:"helm list shows deployed and failed by default; pending/uninstalled show only with -a/--all."},
+ {d:"arch",q:"Which command renders a Kustomize directory without applying it?",o:["kubectl apply -k dir --dry-run","kubectl kustomize dir","kustomize apply dir","kubectl get -k dir"],a:1,e:"kubectl kustomize <dir> prints the rendered YAML (kubectl apply -k applies it)."},
+ {d:"arch",q:"Which command prints a ready-to-use join command for a worker node?",o:["kubeadm join --print","kubeadm token create --print-join-command","kubeadm init phase join","kubectl get token"],a:1,e:"kubeadm token create --print-join-command creates a token and prints the full kubeadm join line."},
+ {d:"arch",q:"CRI, CNI and CSI respectively standardize...",o:["container runtimes, networking, storage","configuration, networking, security","clusters, nodes, services","certificates, namespaces, secrets"],a:0,e:"Container Runtime Interface, Container Network Interface, Container Storage Interface."},
+ {d:"arch",q:"On packages from pkgs.k8s.io, why might apt not find the next minor version of kubeadm?",o:["Packages are removed after 30 days","The repo URL is pinned to one minor version (e.g. /v1.33/deb/) and must be changed","You must use snap","You need --allow-downgrades"],a:1,e:"Each minor version has its own repository; edit /etc/apt/sources.list.d/kubernetes.list to the new minor first."},
+ {d:"work",q:"A Pod has requests == limits for CPU and memory in every container. Its QoS class is:",o:["BestEffort","Burstable","Guaranteed","Critical"],a:2,e:"Guaranteed requires every container to have equal requests and limits for both CPU and memory."},
+ {d:"work",q:"How do you make an init container a native sidecar that keeps running alongside the app?",o:["sidecar: true","restartPolicy: Always on the init container","Put it in containers[] with type: sidecar","lifecycle: persistent"],a:1,e:"Native sidecars (GA in 1.33) are initContainers with restartPolicy: Always."},
+ {d:"work",q:"Which kubectl command rolls back a Deployment to revision 2?",o:["kubectl rollback deploy x 2","kubectl rollout undo deploy x --to-revision=2","kubectl set revision deploy x 2","kubectl rollout restart deploy x --rev 2"],a:1,e:"kubectl rollout undo deployment/x --to-revision=2"},
+ {d:"work",q:"An HPA shows TARGETS '<unknown>/50%'. The most likely cause is:",o:["Too many replicas","metrics-server missing or pods have no CPU requests","Wrong apiVersion","Pods are Guaranteed QoS"],a:1,e:"Utilization is computed relative to requests; without requests or metrics-server the HPA can't compute it."},
+ {d:"work",q:"Which taint effect evicts already-running pods that don't tolerate it?",o:["NoSchedule","PreferNoSchedule","NoExecute","Evict"],a:2,e:"NoExecute evicts non-tolerating pods (optionally after tolerationSeconds)."},
+ {d:"work",q:"To schedule a pod on a specific node and BYPASS the scheduler, set:",o:["nodeSelector","spec.nodeName","nodeAffinity required","schedulerName: none"],a:1,e:"spec.nodeName is bound directly by the kubelet; the scheduler is skipped (taints with NoSchedule are not checked)."},
+ {d:"work",q:"Which object sets DEFAULT requests/limits for containers in a namespace?",o:["ResourceQuota","LimitRange","PriorityClass","PodDisruptionBudget"],a:1,e:"LimitRange provides defaults and min/max; ResourceQuota caps the namespace total."},
+ {d:"work",q:"There is no 'kubectl create daemonset'. The fastest way to get a DaemonSet YAML is:",o:["kubectl run --ds","Generate a Deployment with --dry-run, change kind, drop replicas/strategy","kubectl expose ds","Copy from kube-proxy only"],a:1,e:"Common exam trick: create deploy ... $do, then edit kind to DaemonSet and delete replicas/strategy/status."},
+ {d:"work",q:"Which Job field limits how many times failed pods are retried?",o:["completions","parallelism","backoffLimit","activeDeadlineSeconds"],a:2,e:"backoffLimit (default 6). activeDeadlineSeconds limits total runtime."},
+ {d:"net",q:"What is the DNS name of Service 'db' in namespace 'prod' (default cluster domain)?",o:["db.prod.cluster.local","db.prod.svc.cluster.local","prod.db.svc.cluster.local","db.svc.prod.local"],a:1,e:"<service>.<namespace>.svc.cluster.local"},
+ {d:"net",q:"A Service shows no Endpoints. The first thing to check is:",o:["kube-proxy logs","That the Service selector matches pod labels and pods are Ready","CoreDNS","The node's iptables"],a:1,e:"No endpoints almost always means a selector/label mismatch or no Ready pods."},
+ {d:"net",q:"A NetworkPolicy has policyTypes [Ingress] and an empty ingress list. Effect on selected pods?",o:["All ingress allowed","All ingress denied","All egress denied","No effect"],a:1,e:"Selected pods with no allowed ingress rules = deny all ingress."},
+ {d:"net",q:"In a NetworkPolicy 'from' list, a single item with BOTH namespaceSelector and podSelector means:",o:["pods matching podSelector OR any pod in the namespaces","pods matching podSelector AND in matching namespaces","It is invalid","Only namespaceSelector is used"],a:1,e:"Same list item = AND. Separate list items (separate dashes) = OR."},
+ {d:"net",q:"When restricting egress with a NetworkPolicy, what do you usually also need to allow?",o:["ICMP","DNS on port 53 (UDP and TCP)","Port 443 to the apiserver","Port 10250"],a:1,e:"Without DNS egress, name resolution breaks for the selected pods."},
+ {d:"net",q:"In Gateway API, which resource is typically owned by the cluster operator and defines listeners?",o:["HTTPRoute","Gateway","GatewayClass only","Service"],a:1,e:"GatewayClass (infra provider) → Gateway (cluster operator, listeners) → HTTPRoute (app developer)."},
+ {d:"net",q:"Which field links an HTTPRoute to a Gateway?",o:["spec.gatewayRef","spec.parentRefs","spec.backendRefs","metadata.ownerReferences"],a:1,e:"parentRefs attaches the route to Gateway(s); backendRefs point to Services."},
+ {d:"net",q:"Which Service type gives NO cluster IP and returns pod IPs directly from DNS?",o:["ExternalName","Headless (clusterIP: None)","NodePort","LoadBalancer"],a:1,e:"Headless services return A records for each ready pod, which StatefulSets use for stable DNS."},
+ {d:"net",q:"Where do you find the Service CIDR on a kubeadm cluster?",o:["/etc/cni/net.d","--service-cluster-ip-range in kube-apiserver manifest","kube-proxy ConfigMap clusterCIDR","CoreDNS Corefile"],a:1,e:"kube-apiserver (and controller-manager) --service-cluster-ip-range. clusterCIDR in kube-proxy is the POD CIDR."},
+ {d:"net",q:"pathType Prefix '/foo' in an Ingress matches which of these?",o:["/foobar","/foo/bar","Both","Neither"],a:1,e:"Prefix matching is element-wise by '/' segments: /foo matches /foo and /foo/bar but not /foobar."},
+ {d:"stor",q:"A PVC with no storageClassName stays Pending although a matching PV (no class) exists. Why?",o:["PVs need labels","A default StorageClass was injected into the PVC","Capacity must be exactly equal","hostPath is unsupported"],a:1,e:"The DefaultStorageClass admission plugin sets the default class. Use storageClassName: \"\" to bind to class-less PVs."},
+ {d:"stor",q:"Which access mode allows mounting read-write by many nodes?",o:["RWO","ROX","RWX","RWOP"],a:2,e:"ReadWriteMany. RWOP = ReadWriteOncePod (a single pod)."},
+ {d:"stor",q:"volumeBindingMode: WaitForFirstConsumer means:",o:["PV binding/provisioning waits until a Pod uses the PVC","PVC waits for admin approval","The pod waits for the PV to be formatted","Volumes are deleted after use"],a:0,e:"Delays binding so the scheduler can choose a node, which matters for topology-aware/local storage."},
+ {d:"stor",q:"What does reclaimPolicy Retain do after the PVC is deleted?",o:["Deletes the data","Keeps the PV (Released) and its data for manual cleanup","Rebinds automatically to a new PVC","Snapshots the volume"],a:1,e:"The PV becomes Released and isn't reused automatically until an admin cleans up claimRef."},
+ {d:"stor",q:"To grow a PVC from 1Gi to 5Gi, the StorageClass must have:",o:["reclaimPolicy: Delete","allowVolumeExpansion: true","volumeBindingMode: Immediate","resizable: yes"],a:1,e:"Then edit spec.resources.requests.storage on the PVC (shrinking isn't supported)."},
+ {d:"stor",q:"Which annotation marks a StorageClass as default?",o:["storageclass.kubernetes.io/is-default-class: \"true\"","kubernetes.io/default: true","default-storageclass=yes","storage.k8s.io/primary"],a:0,e:"Make sure only one class has it set to \"true\"."},
+ {d:"trbl",q:"A container keeps restarting. Which command shows logs from the crashed instance?",o:["kubectl logs pod","kubectl logs pod --previous","kubectl describe pod --logs","kubectl events pod"],a:1,e:"--previous (-p) shows logs of the last terminated container."},
+ {d:"trbl",q:"kubectl doesn't respond because the apiserver is down. How do you inspect control plane containers?",o:["docker ps","crictl ps -a / crictl logs on the control plane node","kubectl get pods --offline","systemctl status kube-apiserver"],a:1,e:"Control plane runs as static pods under containerd; use crictl and /var/log/pods."},
+ {d:"trbl",q:"A node is NotReady. Your first command on that node is usually:",o:["kubeadm reset","systemctl status kubelet (then journalctl -u kubelet)","reboot","kubectl delete node"],a:1,e:"Most NotReady issues are kubelet: stopped, misconfigured, wrong path/certs, or the container runtime is down."},
+ {d:"trbl",q:"Pods are Pending and describe shows NO scheduling events at all. Most likely:",o:["Insufficient CPU","kube-scheduler is not running","Image pull error","NetworkPolicy"],a:1,e:"Resource/taint problems produce FailedScheduling events. No events at all suggests the scheduler is down."},
+ {d:"trbl",q:"A Deployment exists but no ReplicaSet/pods are created. Which component is likely broken?",o:["kube-scheduler","kube-controller-manager","kube-proxy","CoreDNS"],a:1,e:"The deployment and replicaset controllers live in kube-controller-manager."},
+ {d:"trbl",q:"Pod status CreateContainerConfigError usually means:",o:["Image not found","A referenced ConfigMap/Secret (or key) is missing","OOMKilled","Liveness probe failed"],a:1,e:"The kubelet can't build the container config, typically because of missing configMapKeyRef/secretKeyRef."},
+ {d:"trbl",q:"Exit code 137 / reason OOMKilled means:",o:["The process segfaulted","The container exceeded its memory limit","The image is wrong","The liveness probe failed"],a:1,e:"137 = 128 + SIGKILL(9). With reason OOMKilled, raise the memory limit or fix the leak."},
+ {d:"trbl",q:"Which command lists events cluster-wide sorted by time?",o:["kubectl get events -A --sort-by=.metadata.creationTimestamp","kubectl events --all --time","kubectl describe events","kubectl logs events"],a:0,e:"You can also use kubectl events -A, which is sorted by default in recent versions."},
+ {d:"trbl",q:"How do you add a debugging container to a running pod that has no shell?",o:["kubectl exec --image","kubectl debug -it pod --image=busybox --target=app","kubectl attach --debug","Edit the pod and add a container"],a:1,e:"Ephemeral containers via kubectl debug; --target shares the process namespace of that container."},
+ {d:"trbl",q:"Where is the kubelet systemd drop-in that defines its ExecStart on kubeadm (deb) installs?",o:["/etc/kubernetes/kubelet.conf","/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf","/var/lib/kubelet/kubeadm-flags.env only","/etc/default/kube"],a:1,e:"10-kubeadm.conf sets ExecStart and pulls in /var/lib/kubelet/kubeadm-flags.env and config.yaml."},
+];
+
+/* ---------- Cheat sheet ---------- */
+const CHEAT = [
+ ["First 60 seconds of the exam", `alias k=kubectl                       # usually preconfigured
+export do="--dry-run=client -o yaml"   # k run x --image=nginx $do > x.yaml
+export now="--force --grace-period 0"  # k delete pod x $now
+source <(kubectl completion bash); complete -o default -F __start_kubectl k
+
+# ~/.vimrc
+set expandtab tabstop=2 shiftwidth=2 number`],
+ ["Generate YAML fast", `k run nginx --image=nginx --port=80 --labels=app=web $do
+k create deploy web --image=nginx --replicas=3 $do
+k create job j --image=busybox $do -- sh -c 'echo hi'
+k create cronjob cj --image=busybox --schedule="*/5 * * * *" $do -- date
+k create cm cfg --from-literal=k=v --from-file=app.conf $do
+k create secret generic s --from-literal=pass=x $do
+k expose deploy web --port=80 --target-port=8080 --type=NodePort $do
+k create sa app; k create role r --verb=get,list --resource=pods
+k create rolebinding rb --role=r --serviceaccount=ns:app
+k create ingress ing --class=nginx --rule="host/path*=svc:80"
+k create quota q --hard=pods=10,requests.cpu=2
+k create priorityclass high --value=1000`],
+ ["Query & output", `k get pod -A -o wide --show-labels
+k get pod -l app=web --sort-by=.metadata.creationTimestamp
+k get pod -o jsonpath='{.items[*].metadata.name}'
+k get pod -o jsonpath='{range .items[*]}{.metadata.name}{"\\t"}{.status.podIP}{"\\n"}{end}'
+k get node -o custom-columns=NAME:.metadata.name,VER:.status.nodeInfo.kubeletVersion
+k explain pod.spec.containers.livenessProbe --recursive | less
+k api-resources --namespaced=true | grep -i netpol`],
+ ["etcd backup / restore", `export ETCDCTL_API=3
+etcdctl snapshot save /tmp/snap.db --endpoints=https://127.0.0.1:2379 \\
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\
+  --cert=/etc/kubernetes/pki/etcd/server.crt \\
+  --key=/etc/kubernetes/pki/etcd/server.key
+etcdutl snapshot status /tmp/snap.db -w table
+etcdutl snapshot restore /tmp/snap.db --data-dir /var/lib/etcd-new
+# then change the etcd-data hostPath in /etc/kubernetes/manifests/etcd.yaml`],
+ ["kubeadm upgrade", `# control plane
+apt-mark unhold kubeadm && apt-get update && apt-get install -y kubeadm=1.34.x-1.1 && apt-mark hold kubeadm
+kubeadm upgrade plan
+kubeadm upgrade apply v1.34.x
+k drain cp --ignore-daemonsets
+apt-mark unhold kubelet kubectl && apt-get install -y kubelet=1.34.x-1.1 kubectl=1.34.x-1.1 && apt-mark hold kubelet kubectl
+systemctl daemon-reload && systemctl restart kubelet
+k uncordon cp
+# worker: same, but "kubeadm upgrade node" instead of apply`],
+ ["Troubleshooting flow", `# App
+k get pod; k describe pod x; k logs x [-c c] [--previous]
+k get events -A --sort-by=.metadata.creationTimestamp
+k exec -it x -- sh ; k debug -it x --image=busybox --target=c
+# Service
+k get ep,endpointslice; k get pod --show-labels
+k run t --rm -it --image=busybox:1.36 --restart=Never -- wget -qO- -T2 svc.ns:80
+# Node / control plane
+systemctl status kubelet containerd; journalctl -u kubelet -n 50 --no-pager
+crictl ps -a; crictl logs <id>; ls /var/log/pods
+cat /var/lib/kubelet/config.yaml; ls /etc/kubernetes/manifests`],
+ ["Key file locations", `/etc/kubernetes/manifests/          static pods (apiserver, etcd, scheduler, cm)
+/etc/kubernetes/pki/                cluster certs (etcd/ subdir)
+/etc/kubernetes/admin.conf          admin kubeconfig
+/etc/kubernetes/kubelet.conf        kubelet kubeconfig
+/var/lib/kubelet/config.yaml        kubelet config (staticPodPath, clusterDNS...)
+/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+/etc/cni/net.d/                     CNI config
+/etc/containerd/config.toml         containerd config
+/var/log/pods/                      container logs on node`],
+ ["Helm", `helm repo add bitnami https://charts.bitnami.com/bitnami && helm repo update
+helm search repo nginx --versions
+helm -n ns install rel repo/chart --set a.b=1 -f values.yaml --create-namespace
+helm -n ns upgrade rel repo/chart --version 1.2.3 --reuse-values
+helm -n ns ls -a ; helm -n ns history rel ; helm -n ns rollback rel 1
+helm -n ns get values rel ; helm show values repo/chart
+helm -n ns uninstall rel ; helm template rel repo/chart`],
+ ["Exam strategy", `- Read the task's weight first. Skip anything >8 min and flag it.
+- ALWAYS run the given context / ssh command before a task.
+- Use "sudo -i" on nodes when editing system files.
+- Verify every task (get, describe, curl, can-i) before moving on.
+- Copy names from the task text with the copy button. Typos cost points.
+- Bookmark nothing; get used to the docs search box.
+- Partial credit exists, so always submit something.`],
+ ["Docs pages to know by heart", `kubectl Quick Reference       /docs/reference/kubectl/quick-reference/
+Operating etcd                /docs/tasks/administer-cluster/configure-upgrade-etcd/
+Upgrading kubeadm clusters    /docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
+Network Policies              /docs/concepts/services-networking/network-policies/
+Persistent Volumes            /docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+Gateway API                   /docs/concepts/services-networking/gateway/
+RBAC                          /docs/reference/access-authn-authz/rbac/
+JSONPath                      /docs/reference/kubectl/jsonpath/`],
+];
+
+/* =====================================================================
+   STORAGE HELPERS
+   ===================================================================== */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem("cka."+k); return v===null ? d : JSON.parse(v);}catch{ return d; } },
+  set(k, v){ localStorage.setItem("cka."+k, JSON.stringify(v)); },
+  del(k){ localStorage.removeItem("cka."+k); }
+};
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tag = d => `<span class="tag ${DOMAINS[d].cls}">${DOMAINS[d].name}</span>`;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600); }
+function copy(text){ navigator.clipboard?.writeText(text).then(()=>toast("Copied")); }
+
+/* =====================================================================
+   NAV
+   ===================================================================== */
+$("#nav").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active", x===b));
+  document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("active", s.id===b.dataset.tab));
+  if(b.dataset.tab==="dash") renderDash();
+  LS.set("tab", b.dataset.tab);
+});
+
+/* =====================================================================
+   STUDY PLAN
+   ===================================================================== */
+function planKeys(){ const k=[]; PLAN.forEach((w,wi)=>w.days.forEach((d,di)=>d.tasks.forEach((_,ti)=>k.push(`${wi}-${di}-${ti}`)))); return k; }
+function renderPlan(){
+  const done = LS.get("plan", {});
+  const open = LS.get("planOpen", [0]);
+  $("#weeks").innerHTML = PLAN.map((w,wi)=>{
+    let tot=0, dn=0;
+    const days = w.days.map((d,di)=>{
+      const tasks = d.tasks.map((t,ti)=>{ const id=`${wi}-${di}-${ti}`; tot++; if(done[id]) dn++;
+        return `<label class="task ${done[id]?"done":""}"><input type="checkbox" data-id="${id}" ${done[id]?"checked":""}><span>${esc(t)}</span></label>`;}).join("");
+      const links = d.links ? `<div class="links">📖 ${d.links.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join("")}</div>` : "";
+      return `<div class="day"><h4>${d.weekend?"🧪 Weekend":"Day "+(di+1)}: ${esc(d.t)} ${tag(d.d)}</h4>${tasks}${links}</div>`;
+    }).join("");
+    const pct = Math.round(dn/tot*100);
+    return `<div class="card week ${open.includes(wi)?"open":""}" data-w="${wi}" style="padding:0">
+      <div class="week-head"><h3>${esc(w.title)}</h3><div style="min-width:160px;text-align:right"><span style="color:var(--muted);font-size:13px">${dn}/${tot} tasks</span><div class="bar"><i style="width:${pct}%;${pct===100?"background:var(--ok)":""}"></i></div></div></div>
+      <div class="week-body">${days}</div></div>`;
+  }).join("");
+}
+$("#weeks").addEventListener("click", e=>{
+  const head = e.target.closest(".week-head");
+  if(head){ const wi=+head.parentElement.dataset.w; let open=LS.get("planOpen",[0]);
+    open = open.includes(wi) ? open.filter(x=>x!==wi) : [...open, wi]; LS.set("planOpen",open); head.parentElement.classList.toggle("open"); }
+});
+$("#weeks").addEventListener("change", e=>{
+  if(!e.target.dataset.id) return;
+  const done = LS.get("plan", {}); done[e.target.dataset.id] = e.target.checked; LS.set("plan", done); renderPlan();
+});
+$("#expandAll").onclick = ()=>{ const all=PLAN.map((_,i)=>i); const open=LS.get("planOpen",[]); LS.set("planOpen", open.length===all.length?[]:all); renderPlan(); };
+$("#resetPlan").onclick = ()=>{ if(confirm("Reset all study plan progress?")){ LS.del("plan"); renderPlan(); } };
+
+/* =====================================================================
+   SIMULATOR
+   ===================================================================== */
+const DURATION = 120*60*1000;
+let timerInt = null;
+const simKey = id => "sim."+id;
+const qMax = q => q.w;
+const examTotal = ex => ex.qs.reduce((s,q)=>s+q.w,0);
+
+function renderSimHome(){
+  $("#simHome").style.display=""; $("#simRun").style.display="none";
+  $("#examCards").innerHTML = Object.entries(EXAMS).map(([id,ex])=>{
+    const st = LS.get(simKey(id));
+    const doms = [...new Set(ex.qs.map(q=>q.d))].map(tag).join(" ");
+    let action = `<button class="btn" data-start="${id}">Start exam</button>`;
+    if(st && st.phase==="run") action = `<button class="btn" data-resume="${id}">Resume (in progress)</button> <button class="btn ghost" data-abandon="${id}">Abandon</button>`;
+    if(st && st.phase==="review") action = `<button class="btn" data-resume="${id}">Continue grading</button> <button class="btn ghost" data-abandon="${id}">Discard</button>`;
+    return `<div class="card"><h3 style="margin-top:0">${ex.name}</h3><p class="sub" style="margin-bottom:10px">${ex.desc}</p>
+      <p>${ex.qs.length} tasks · ${examTotal(ex)} points · 120 min · pass 66%</p><p>${doms}</p><div class="row">${action}</div></div>`;
+  }).join("");
+}
+$("#examCards").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.start){ LS.set(simKey(b.dataset.start), {phase:"run", end:Date.now()+DURATION, cur:0, done:{}, flag:{}, notes:{}, hints:{}, grade:{}}); openSim(b.dataset.start); }
+  if(b.dataset.resume) openSim(b.dataset.resume);
+  if(b.dataset.abandon && confirm("Discard this attempt?")){ LS.del(simKey(b.dataset.abandon)); renderSimHome(); }
+});
+
+function openSim(id){
+  const st = LS.get(simKey(id));
+  $("#simHome").style.display="none"; $("#simRun").style.display="";
+  st.phase==="review" ? renderReview(id) : renderRun(id);
+}
+
+function renderRun(id){
+  const ex = EXAMS[id], st = LS.get(simKey(id)), q = ex.qs[st.cur];
+  const list = ex.qs.map((x,i)=>`<button class="qbtn ${i===st.cur?"cur":""} ${st.done[i]?"done":""} ${st.flag[i]?"flag":""}" data-q="${i}">
+     <span>Q${i+1} <small>${x.w} pts</small></span><span class="fl">${st.flag[i]?"⚑":""}${st.done[i]?" ✓":""}</span></button>`).join("");
+  const ctxCmd = `kubectl config use-context ${q.ctx}`;
+  $("#simRun").innerHTML = `
+   <div class="sim-top"><div><b>${ex.name}</b> <span style="color:var(--muted)">· ${Object.values(st.done).filter(Boolean).length}/${ex.qs.length} marked done</span></div>
+     <div class="timer" id="timer">--:--:--</div>
+     <div class="row"><button class="btn ghost sm" id="simExit">Pause & exit</button><button class="btn bad sm" id="simEnd">End exam</button></div></div>
+   <div class="sim-wrap"><div class="qlist">${list}</div>
+   <div class="card">
+     <div class="row" style="justify-content:space-between"><h2>Question ${st.cur+1} <span style="color:var(--muted);font-weight:400;font-size:16px">| ${q.title}</span></h2>
+       <div class="row"><span class="tag">Weight ${q.w} pts</span>${tag(q.d)}</div></div>
+     <div class="ctx"><b>Solve this question on:</b> <span>${ctxCmd}</span><button class="btn ghost sm" data-copy="${esc(ctxCmd)}" style="margin-left:auto">Copy</button></div>
+     <div class="qtask">${q.task}</div>
+     ${st.hints[st.cur] && q.hint ? `<div class="hint">💡 ${esc(q.hint)}</div>`:""}
+     <h3>Your notes</h3>
+     <textarea id="qnote" rows="5" placeholder="Scratchpad: commands you ran, things to revisit...">${esc(st.notes[st.cur]||"")}</textarea>
+     <div class="row" style="margin-top:14px;justify-content:space-between">
+       <div class="row">
+         <button class="btn ${st.done[st.cur]?"ok":"ghost"}" id="qDone">${st.done[st.cur]?"✓ Done":"Mark as done"}</button>
+         <button class="btn ghost" id="qFlag">${st.flag[st.cur]?"⚑ Unflag":"⚑ Flag"}</button>
+         ${q.hint && !st.hints[st.cur] ? `<button class="btn ghost" id="qHint">Show hint</button>`:""}
+       </div>
+       <div class="row"><button class="btn ghost" id="qPrev" ${st.cur===0?"disabled":""}>← Prev</button><button class="btn ghost" id="qNext" ${st.cur===ex.qs.length-1?"disabled":""}>Next →</button></div>
+     </div>
+   </div></div>`;
+  const save = fn => { const s=LS.get(simKey(id)); fn(s); LS.set(simKey(id), s); };
+  const go = i => { save(s=>s.cur=i); renderRun(id); };
+  $("#simRun .qlist").onclick = e=>{ const b=e.target.closest("[data-q]"); if(b) go(+b.dataset.q); };
+  $("#simRun").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copy(b.dataset.copy));
+  $("#qnote").oninput = e=> save(s=>s.notes[s.cur]=e.target.value);
+  $("#qDone").onclick = ()=>{ save(s=>s.done[s.cur]=!s.done[s.cur]); renderRun(id); };
+  $("#qFlag").onclick = ()=>{ save(s=>s.flag[s.cur]=!s.flag[s.cur]); renderRun(id); };
+  if($("#qHint")) $("#qHint").onclick = ()=>{ save(s=>s.hints[s.cur]=true); renderRun(id); };
+  $("#qPrev").onclick = ()=>go(st.cur-1);
+  $("#qNext").onclick = ()=>go(st.cur+1);
+  $("#simExit").onclick = ()=>{ clearInterval(timerInt); renderSimHome(); };
+  $("#simEnd").onclick = ()=>{ if(confirm("End the exam and start grading?")) endExam(id); };
+  startTimer(id);
+}
+
+function startTimer(id){
+  clearInterval(timerInt);
+  const tick = ()=>{
+    const st = LS.get(simKey(id)); if(!st || st.phase!=="run"){ clearInterval(timerInt); return; }
+    const left = st.end - Date.now();
+    const el = $("#timer"); if(!el){ clearInterval(timerInt); return; }
+    if(left<=0){ clearInterval(timerInt); alert("Time is up!"); endExam(id); return; }
+    const h=Math.floor(left/3.6e6), m=Math.floor(left%3.6e6/6e4), s=Math.floor(left%6e4/1e3);
+    el.textContent = [h,m,s].map(n=>String(n).padStart(2,"0")).join(":");
+    el.classList.toggle("low", left<15*60*1000);
+  };
+  tick(); timerInt = setInterval(tick, 1000);
+}
+
+function endExam(id){
+  clearInterval(timerInt);
+  const st = LS.get(simKey(id)); st.phase="review"; st.used = Math.min(DURATION, DURATION-(st.end-Date.now())); LS.set(simKey(id), st);
+  renderReview(id);
+}
+
+function qScore(q, grade, i){ const g=grade[i]||{}; const n=q.checks.length; const ok=q.checks.filter((_,c)=>g[c]).length; return q.w*ok/n; }
+
+function renderReview(id){
+  const ex = EXAMS[id], st = LS.get(simKey(id));
+  const total = examTotal(ex);
+  const got = ex.qs.reduce((s,q,i)=>s+qScore(q,st.grade,i),0);
+  const pct = Math.round(got/total*100);
+  const mins = Math.round((st.used||0)/60000);
+  $("#simRun").innerHTML = `
+   <div class="sim-top"><div><b>${ex.name}: Grading</b> <span style="color:var(--muted)">· time used ${mins} min · hints used ${Object.keys(st.hints).length}</span></div>
+     <div class="timer ${pct>=66?"pass":"fail"}">${pct}% ${pct>=66?"PASS":"FAIL"}</div>
+     <div class="row"><button class="btn ghost sm" id="rvExit">Back</button><button class="btn ok sm" id="rvSave">Save result</button></div></div>
+   <p class="sub">For each task, compare your work with the solution and tick only the checklist items you actually achieved in your cluster. Be strict, because the real exam grader is.</p>
+   ${ex.qs.map((q,i)=>{ const g=st.grade[i]||{}; const sc=qScore(q,st.grade,i);
+     return `<details class="card review-q" ${i===0?"open":""}><summary><span><b>Q${i+1}.</b> ${esc(q.title)} ${tag(q.d)} ${st.flag[i]?"⚑":""}</span><span class="score-pill">${(+sc.toFixed(1))} / ${q.w}</span></summary>
+       <div class="qtask" style="margin-top:12px">${q.task}</div>
+       ${st.notes[i]?`<h3>Your notes</h3><pre>${esc(st.notes[i])}</pre>`:""}
+       <h3>Solution</h3><div style="position:relative"><pre>${esc(q.sol)}</pre><button class="btn ghost sm" data-copysol="${i}" style="position:absolute;top:8px;right:8px">Copy</button></div>
+       <h3>Grading checklist</h3>
+       ${q.checks.map((c,ci)=>`<label class="check"><input type="checkbox" data-q="${i}" data-c="${ci}" ${g[ci]?"checked":""}><span>${esc(c)}</span></label>`).join("")}
+     </details>`;}).join("")}`;
+  $("#simRun").onchange = e=>{ const t=e.target; if(t.dataset.c===undefined) return;
+    const s=LS.get(simKey(id)); s.grade[t.dataset.q] = s.grade[t.dataset.q]||{}; s.grade[t.dataset.q][t.dataset.c]=t.checked; LS.set(simKey(id), s);
+    const openIdx=[...document.querySelectorAll("#simRun details")].map((d,i)=>d.open?i:-1).filter(i=>i>=0);
+    renderReview(id); document.querySelectorAll("#simRun details").forEach((d,i)=>d.open=openIdx.includes(i)); };
+  $("#simRun").querySelectorAll("[data-copysol]").forEach(b=>b.onclick=()=>copy(ex.qs[+b.dataset.copysol].sol));
+  $("#rvExit").onclick = ()=>renderSimHome();
+  $("#rvSave").onclick = ()=>{
+    const per = {}; ex.qs.forEach((q,i)=>{ per[q.d]=per[q.d]||[0,0]; per[q.d][0]+=qScore(q,st.grade,i); per[q.d][1]+=q.w; });
+    const hist = LS.get("history", []); hist.push({exam:id, date:new Date().toISOString(), pct, mins, per}); LS.set("history", hist);
+    LS.del(simKey(id)); toast("Result saved"); renderSimHome();
+  };
+}
+
+/* =====================================================================
+   QUIZ
+   ===================================================================== */
+let quizCur = null, quizSess = {n:0, ok:0};
+Object.entries(DOMAINS).forEach(([k,v])=>$("#quizDomain").insertAdjacentHTML("beforeend",`<option value="${k}">${v.name}</option>`));
+function pickQuiz(){
+  const dom = $("#quizDomain").value, stats = LS.get("quizStats", {});
+  const pool = QUIZ.map((q,i)=>({q,i})).filter(x=>dom==="all"||x.q.d===dom);
+  // weight: unseen 3, wrong-last 5, right-last 1
+  const weights = pool.map(x=>{ const s=stats[x.i]; return !s?3 : s.last?1:5; });
+  let r = Math.random()*weights.reduce((a,b)=>a+b,0);
+  for(let k=0;k<pool.length;k++){ r-=weights[k]; if(r<=0 && pool[k].i!==quizCur) return pool[k].i; }
+  return pool[Math.floor(Math.random()*pool.length)].i;
+}
+function renderQuiz(){
+  quizCur = pickQuiz(); const q = QUIZ[quizCur];
+  const order = q.o.map((_,i)=>i).sort(()=>Math.random()-.5);
+  $("#quizCard").innerHTML = `<div class="row" style="justify-content:space-between">${tag(q.d)}<span style="color:var(--muted)">#${quizCur+1} of ${QUIZ.length}</span></div>
+    <h3>${esc(q.q)}</h3>${order.map(i=>`<button class="opt" data-i="${i}">${esc(q.o[i])}</button>`).join("")}<div id="quizFb"></div>`;
+  $("#quizCard").querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i, right=i===q.a;
+    $("#quizCard").querySelectorAll(".opt").forEach(x=>{ x.disabled=true; if(+x.dataset.i===q.a) x.classList.add("right"); });
+    if(!right) b.classList.add("wrong");
+    const stats=LS.get("quizStats",{}); const s=stats[quizCur]||{n:0,ok:0}; s.n++; if(right) s.ok++; s.last=right; stats[quizCur]=s; LS.set("quizStats",stats);
+    quizSess.n++; if(right) quizSess.ok++; updQuizSess();
+    $("#quizFb").innerHTML = `<div class="explain"><b class="${right?"pass":"fail"}">${right?"Correct":"Not quite"}.</b> ${esc(q.e)}</div><div style="margin-top:12px"><button class="btn" id="quizNext">Next question →</button></div>`;
+    $("#quizNext").onclick = renderQuiz;
+  });
+}
+function updQuizSess(){ $("#quizSession").textContent = quizSess.n ? `This session: ${quizSess.ok}/${quizSess.n}` : ""; }
+$("#quizDomain").onchange = renderQuiz;
+$("#quizResetStats").onclick = ()=>{ if(confirm("Reset quiz statistics?")){ LS.del("quizStats"); quizSess={n:0,ok:0}; updQuizSess(); toast("Reset"); } };
+document.addEventListener("keydown", e=>{
+  if(!$("#quiz").classList.contains("active")) return;
+  if(e.key==="Enter" && $("#quizNext")) renderQuiz();
+  if(/^[1-4]$/.test(e.key)){ const b=$("#quizCard").querySelectorAll(".opt")[+e.key-1]; if(b && !b.disabled) b.click(); }
+});
+
+/* =====================================================================
+   CHEAT SHEET
+   ===================================================================== */
+$("#cheatGrid").innerHTML = CHEAT.map(([t,c],i)=>`<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${t}</h3><button class="btn ghost sm" data-cheat="${i}">Copy</button></div><pre>${esc(c)}</pre></div>`).join("");
+$("#cheatGrid").onclick = e=>{ const b=e.target.closest("[data-cheat]"); if(b) copy(CHEAT[+b.dataset.cheat][1]); };
+
+/* =====================================================================
+   DASHBOARD
+   ===================================================================== */
+function renderDash(){
+  const ed = LS.get("examDate", ""); $("#examDate").value = ed;
+  if(ed){ const days = Math.ceil((new Date(ed+"T00:00") - new Date().setHours(0,0,0,0))/864e5);
+    $("#daysLeft").innerHTML = days>0 ? `<b style="color:var(--text);font-size:20px">${days}</b> days to go${days<42?` · <span style="color:var(--warn)">less than the 6-week plan, so compress weeks 1–3</span>`:""}` : days===0 ? "<b>Exam day! Good luck 🍀</b>" : "Exam date passed"; }
+  else $("#daysLeft").textContent = "Set your exam date";
+
+  const keys = planKeys(), done = LS.get("plan",{}); const dn = keys.filter(k=>done[k]).length;
+  const pp = Math.round(dn/keys.length*100); $("#planPct").textContent = pp+"%"; $("#planBar").style.width = pp+"%";
+
+  const hist = LS.get("history", []);
+  $("#bestMock").innerHTML = hist.length ? `<span class="${Math.max(...hist.map(h=>h.pct))>=66?"pass":"fail"}">${Math.max(...hist.map(h=>h.pct))}%</span>` : "–";
+  $("#mockCount").textContent = `${hist.length} attempt${hist.length===1?"":"s"} saved`;
+
+  const qs = Object.values(LS.get("quizStats",{})); const qn=qs.reduce((a,s)=>a+s.n,0), qo=qs.reduce((a,s)=>a+s.ok,0);
+  $("#quizAcc").textContent = qn ? Math.round(qo/qn*100)+"%" : "–";
+  $("#quizCount").textContent = `${qs.length}/${QUIZ.length} questions seen`;
+
+  const agg = {}; hist.forEach(h=>Object.entries(h.per).forEach(([d,[g,t]])=>{ agg[d]=agg[d]||[0,0]; agg[d][0]+=g; agg[d][1]+=t; }));
+  $("#domainBars").innerHTML = Object.entries(DOMAINS).map(([k,v])=>{
+    const r = agg[k] ? Math.round(agg[k][0]/agg[k][1]*100) : null;
+    const col = r===null ? "var(--line)" : r>=75 ? "var(--ok)" : r>=60 ? "var(--warn)" : "var(--bad)";
+    return `<div style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><span>${v.name}</span><span><span class="tag">${v.weight}%</span> <b style="color:${col}">${r===null?"no data":r+"%"}</b></span></div>
+      <div class="bar"><i style="width:${r||0}%;background:${col}"></i></div></div>`;
+  }).join("");
+
+  $("#history").innerHTML = hist.length ? `<table><tr><th>Date</th><th>Exam</th><th>Time</th><th>Score</th></tr>${hist.slice().reverse().map(h=>
+    `<tr><td>${new Date(h.date).toLocaleString()}</td><td>${EXAMS[h.exam].name}</td><td>${h.mins} min</td><td class="${h.pct>=66?"pass":"fail"}">${h.pct}%</td></tr>`).join("")}</table>
+    <div style="margin-top:10px"><button class="btn ghost sm" id="clearHist">Clear history</button></div>`
+    : `<p style="color:var(--muted)">No mock exams saved yet. Start one from the Exam Simulator tab.</p>`;
+  if($("#clearHist")) $("#clearHist").onclick = ()=>{ if(confirm("Clear all mock exam history?")){ LS.del("history"); renderDash(); } };
+}
+$("#examDate").onchange = e=>{ LS.set("examDate", e.target.value); renderDash(); };
+
+/* ---------- init ---------- */
+renderPlan(); renderSimHome(); renderQuiz(); renderDash();
+const lastTab = LS.get("tab","dash"); document.querySelector(`#nav [data-tab="${lastTab}"]`)?.click();
+</script>
+</body>
+</html>
